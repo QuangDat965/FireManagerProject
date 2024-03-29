@@ -1,0 +1,99 @@
+﻿using FireManagerServer.BackgroundServices;
+using FireManagerServer.Common;
+using FireManagerServer.Database;
+using FireManagerServer.Service.JwtService;
+using FireManagerServer.Services.ApartmentService;
+using FireManagerServer.Services.AuthenService;
+using FireManagerServer.Services.ModuleServices;
+using FireManagerServer.Services.RoleService;
+using FireManagerServer.Services.UnitServices;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+
+namespace FireManagerServer
+{
+    public static class StartUp
+    {
+        public static WebApplicationBuilder AddServicesBase(this WebApplicationBuilder builder)
+        {
+
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddScoped<IJwtService, JwtService>();
+            builder.Services.AddScoped<IAuthenService, AuthenService>();
+            builder.Services.AddScoped<IRoleService, RoleService>();
+            builder.Services.AddScoped<IApartmentService, ApartmentService>();
+            builder.Services.AddScoped<IUnitService, UnitService>();
+            builder.Services.AddScoped<IModuleService, ModuleService>();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAllHeaders",
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                               .AllowAnyHeader()
+                               .AllowAnyMethod();
+                    });
+            });
+
+            return builder;
+        }
+        public static WebApplicationBuilder AddBackgroundServices(this WebApplicationBuilder builder)
+        {
+            builder.Services.AddHostedService<ListeningService>();
+            //builder.Services.AddHostedService<ProcessDataService>();
+            return builder;
+        }
+        public static WebApplicationBuilder AddMySql(this WebApplicationBuilder builder)
+        {
+            var serverVersion = new MySqlServerVersion(new Version(5, 7, 0));
+
+            // Replace 'YourDbContext' with the name of your own DbContext derived class.
+            builder.Services.AddDbContext<FireDbContext>(
+                dbContextOptions => dbContextOptions
+                    .UseMySql(builder.Configuration.GetConnectionString("MySqlConnection"), serverVersion)
+                    );
+
+            builder.Services.AddSwaggerGen(opt =>
+            {
+                opt.SwaggerDoc("v1", new OpenApiInfo { Title = "ManagerServer", Version = "v1" });
+                opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                opt.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
+            });
+            return builder;
+        }
+        public static WebApplication UsesService(this WebApplication app)
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            app.UseCustomMiddleware();
+            app.UseCors("AllowAllHeaders");
+            app.UseHttpsRedirection();
+            //app.UseMiddleware<ApiResponseMiddleware> ();
+            app.MapControllers();
+            return app;
+        }
+    }
+}
