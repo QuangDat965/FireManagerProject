@@ -1,5 +1,4 @@
 ﻿using FireManagerServer.BackgroundServices;
-using FireManagerServer.Common;
 using FireManagerServer.Database;
 using FireManagerServer.Service.JwtService;
 using FireManagerServer.Services.ApartmentService;
@@ -7,7 +6,6 @@ using FireManagerServer.Services.AuthenService;
 using FireManagerServer.Services.ModuleServices;
 using FireManagerServer.Services.RoleService;
 using FireManagerServer.Services.UnitServices;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 

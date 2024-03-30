@@ -18,7 +18,7 @@ namespace FireManagerServer.Controllers
         [HttpPost, Route("getbyapartment")]
         public async Task<List<Unit>> GetByApartment([FromBody] CommonRequest request)
         {
-            return await unitService.GetList(request.Id);
+            return await unitService.GetList(request.Id, request.SearchKey);
         }
         [HttpGet, Route("getall")]
         public async Task<List<Unit>> GetAll()
@@ -34,6 +34,11 @@ namespace FireManagerServer.Controllers
         public async Task<bool> Add([FromBody] UnitRequest request)
         {
             return await unitService.Add(request);
+        }
+        [HttpPost, Route("update")]
+        public async Task<bool> Update([FromBody] Unit request)
+        {
+            return await unitService.Update(request);
         }
     }
 }

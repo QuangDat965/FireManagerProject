@@ -36,11 +36,15 @@ namespace FireManagerServer.Services.ApartmentService
             return true;
         }
 
-        public async Task<List<Apartment>> Get(string userId)
+        public async Task<List<Apartment>> Get(string userId, string ? searchKey)
         {
             var list = await(from data in dbContext.Apartments
                              where data.UserId == userId
                              select data).ToListAsync();
+            if(!string.IsNullOrEmpty(searchKey))
+            {
+                list = list.Where(_ => _.Name.Contains(searchKey)).ToList();
+            }
             return list;
         }
 

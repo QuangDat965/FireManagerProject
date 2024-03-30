@@ -5,5 +5,6 @@
         public string? Id { get; set; }
         public string? UnitId { get; set; }
         public string? ModuleId { get; set; }
+        public string? SearchKey { get; set; }
     }
 }

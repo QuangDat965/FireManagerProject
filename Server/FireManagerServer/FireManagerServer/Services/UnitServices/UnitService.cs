@@ -40,10 +40,21 @@ namespace FireManagerServer.Services.UnitServices
             return await dbContext.Units.ToListAsync();
         }
 
-        public async Task<List<Unit>> GetList(string apartmentId)
+        public async Task<List<Unit>> GetList(string apartmentId, string? search)
         {
             var list = await dbContext.Units.Where(p=>p.ApartmentId ==apartmentId).ToListAsync();
+            if(!string.IsNullOrEmpty(search))
+            {
+                list = list.Where(p => p.Name.Contains(search)).ToList();
+            }
             return list;
+        }
+
+        public async Task<bool> Update(Unit unit)
+        {
+            dbContext.Units.Update(unit);
+            await dbContext.SaveChangesAsync();
+            return true;
         }
     }
 }

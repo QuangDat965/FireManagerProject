@@ -10,8 +10,8 @@ namespace FireManagerServer.Database.Entity
         public string Name { get; set; }
         public string? Desc { get; set; }
         [ForeignKey("ApartmentId")]
-        public string ApartmentId { get; set; }
-        public Apartment Apartment { get; set; }
+        public string? ApartmentId { get; set; }
+        public Apartment? Apartment { get; set; }
         public List<Module>? Modules { get; set; }
     }
 }
