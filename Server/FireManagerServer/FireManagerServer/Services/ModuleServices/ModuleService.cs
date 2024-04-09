@@ -20,7 +20,7 @@ namespace FireManagerServer.Services.ModuleServices
             {
                 return false;
             }
-            module.RoomId = unitId;
+            module.UnitId = unitId;
             dbContext.Update(module);
             await dbContext.SaveChangesAsync();
             return true;
@@ -33,7 +33,7 @@ namespace FireManagerServer.Services.ModuleServices
 
         public async Task<List<Module>> GetbyUnitId(string unitId)
         {
-            return await dbContext.Modules.Where(p=>p.RoomId==unitId).ToListAsync();
+            return await dbContext.Modules.Where(p=>p.UnitId==unitId).ToListAsync();
         }
 
         public async Task<List<Module>> GetbyUserId(string userId)

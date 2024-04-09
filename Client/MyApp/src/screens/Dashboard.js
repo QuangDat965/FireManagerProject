@@ -49,6 +49,9 @@ export default function Dashboard({ navigation }) {
     else if(id ==3) {
       navigation.navigate('ModuleScreen');
     }
+    else if(id ==4) {
+      navigation.navigate('AutoScreen');
+    }
   }
   useEffect(() => {
   setSceen(1)

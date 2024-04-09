@@ -88,7 +88,7 @@ export default function UnitDetailScreen(router) {
             {/* header */}
             <View style={styles.header}>
                 <View style={[styles.box, { width: '30%', }]}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                    <TouchableOpacity onPress={() => router.navigation.navigate('Dashboard')}>
                         <Icon name="angle-double-left" size={30} color="#fff" />
                     </TouchableOpacity>
                 </View>

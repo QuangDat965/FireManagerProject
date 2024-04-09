@@ -14,5 +14,7 @@ namespace FireManagerServer.Database
         public DbSet<Unit> Units { get; set; }
         public DbSet<Module> Modules { get; set; }
         public DbSet<Apartment> Apartments { get; set; }
+        public DbSet<RuleEntity> Rules { get; set; }
+        public DbSet<DeviceEntity> Devices { get; set; }
     }
 }

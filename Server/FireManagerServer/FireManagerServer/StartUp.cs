@@ -50,7 +50,10 @@ namespace FireManagerServer
             // Replace 'YourDbContext' with the name of your own DbContext derived class.
             builder.Services.AddDbContext<FireDbContext>(
                 dbContextOptions => dbContextOptions
-                    .UseMySql(builder.Configuration.GetConnectionString("MySqlConnection"), serverVersion)
+                    .UseMySql(builder.Configuration.GetConnectionString("MySqlConnection"), serverVersion, mysqlOptions =>
+                    {
+                        mysqlOptions.EnableRetryOnFailure();
+                    })
                     );
 
             builder.Services.AddSwaggerGen(opt =>

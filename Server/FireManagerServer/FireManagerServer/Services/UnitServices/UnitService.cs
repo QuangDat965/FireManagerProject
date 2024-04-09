@@ -40,19 +40,38 @@ namespace FireManagerServer.Services.UnitServices
             return await dbContext.Units.ToListAsync();
         }
 
-        public async Task<List<Unit>> GetList(string apartmentId, string? search)
+        public async Task<List<Unit>> GetList(UnitFilter filter)
         {
-            var list = await dbContext.Units.Where(p=>p.ApartmentId ==apartmentId).ToListAsync();
-            if(!string.IsNullOrEmpty(search))
+            var list = await dbContext.Units.Where(p => p.ApartmentId == filter.Id).ToListAsync();
+            if (!string.IsNullOrEmpty(filter.SearchKey))
             {
-                list = list.Where(p => p.Name.Contains(search)).ToList();
+                list = list.Where(p => p.Name.Contains(filter.SearchKey)).ToList();
+            }
+            if (filter.OrderBy == Common.OrderType.ByName)
+            {
+                list = list.OrderBy(p => p.Name).ToList();
+            }
+            else if (filter.OrderBy == Common.OrderType.ByDateNear)
+            {
+                list = list.OrderBy(p => p.DateCreate).ToList();
+            }
+            else if (filter.OrderBy == Common.OrderType.ByDateFar)
+            {
+                list = list.OrderByDescending(p => p.DateCreate).ToList();
             }
             return list;
         }
 
-        public async Task<bool> Update(Unit unit)
+        public async Task<bool> Update(UnitUpdateDto unit)
         {
-            dbContext.Units.Update(unit);
+            var rs = await dbContext.Units.FirstOrDefaultAsync(p=>p.Id == unit.Id);
+            if(rs == null)
+            {
+                return false;
+            }
+            rs.Name = unit.Name;
+            rs.Desc = unit.Desc;
+            dbContext.Update(rs);
             await dbContext.SaveChangesAsync();
             return true;
         }

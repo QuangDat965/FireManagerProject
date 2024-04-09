@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FireManagerServer.Migrations
 {
     [DbContext(typeof(FireDbContext))]
-    [Migration("20240323204239_initial")]
-    partial class initial
+    [Migration("20240407131334_addthresholdv3")]
+    partial class addthresholdv3
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -67,18 +67,18 @@ namespace FireManagerServer.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("RoomId")
-                        .HasColumnType("varchar(95)");
-
                     b.Property<bool?>("Status")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UnitId")
+                        .HasColumnType("varchar(95)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(95)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoomId");
+                    b.HasIndex("UnitId");
 
                     b.HasIndex("UserId");
 
@@ -104,13 +104,48 @@ namespace FireManagerServer.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("FireManagerServer.Database.Entity.RuleEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("Desc")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ModuleId")
+                        .IsRequired()
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Threshold")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TopicRead")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TopicWrite")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleId");
+
+                    b.ToTable("Rules");
+                });
+
             modelBuilder.Entity("FireManagerServer.Database.Entity.Unit", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("varchar(95)");
 
                     b.Property<string>("ApartmentId")
-                        .IsRequired()
                         .HasColumnType("varchar(95)");
 
                     b.Property<DateTime?>("DateCreate")
@@ -190,26 +225,35 @@ namespace FireManagerServer.Migrations
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
                 {
-                    b.HasOne("FireManagerServer.Database.Entity.Unit", "Room")
+                    b.HasOne("FireManagerServer.Database.Entity.Unit", "Unit")
                         .WithMany("Modules")
-                        .HasForeignKey("RoomId");
+                        .HasForeignKey("UnitId");
 
                     b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
                         .WithMany("Modules")
                         .HasForeignKey("UserId");
 
-                    b.Navigation("Room");
+                    b.Navigation("Unit");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.RuleEntity", b =>
+                {
+                    b.HasOne("FireManagerServer.Database.Entity.Module", "Module")
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.Unit", b =>
                 {
                     b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment")
                         .WithMany()
-                        .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ApartmentId");
 
                     b.Navigation("Apartment");
                 });

@@ -10,10 +10,10 @@ namespace FireManagerServer.Database.Entity
         public string ModuleName { get; set; }
         public bool? Status { get; set; } = false;
         public string? Desc { get; set; }
-        [ForeignKey("RoomId")]
-        public string? RoomId { get; set; }
-        public Unit? Room { get; set; }
-        [ForeignKey("RoomId")]
+        [ForeignKey("UnitId")]
+        public string? UnitId { get; set; }
+        public Unit? Unit { get; set; }
+        [ForeignKey("UserId")]
         public string? UserId { get; set; }
         public UserEntity? User { get; set; }
 

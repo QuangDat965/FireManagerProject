@@ -28,13 +28,17 @@ export default function ModuleScreen({ navigation }) {
     }, [])
     const testFun = () => {
         const fetchdata = async () => {
-            const dt = await getData('Apartment/getlist');
+            const dt = await postData('Apartment/getlist',{
+                "searchKey": ""
+            });
             setApartment(dt);
         }
         fetchdata();
     }
     const initial = async () => {
-        const dt = await getData('Apartment/getlist');
+        const dt = await postData('Apartment/getlist',{
+            "searchKey": ""
+        });
         setApartment(dt);
     }
     const fetchUnit = async (apartmentId) => {
@@ -112,7 +116,7 @@ export default function ModuleScreen({ navigation }) {
                         </TouchableOpacity>
                     </View>
                     <View style={[styles.box, { width: '40%' }]}>
-                        <Text style={{ fontWeight: '700', color: '#fff' }}> Quản lý căn hộ</Text>
+                        <Text style={{ fontWeight: '700', color: '#fff' }}> Quản lý Module</Text>
                     </View>
                     <View style={[styles.box, { width: '30%' }]}>
                         <TouchableOpacity onPress={() => setScreen(1)}>
@@ -133,7 +137,7 @@ export default function ModuleScreen({ navigation }) {
                     </View>
                     <Button onPress={() => testFun()} title="test"></Button>
                     {/* picker */}
-                    {aparments != null && aparments.length > 0 ?
+                    
                         <View style={{ marginLeft: 13, flexDirection: 'row', flexWrap: 'nowrap', width: '100%', height: 50, alignItems: 'center' }}>
                             <Text style={{ fontWeight: '500' }}>Chọn tòa: </Text>
                             <Picker
@@ -142,13 +146,15 @@ export default function ModuleScreen({ navigation }) {
                                 onValueChange={(itemValue) =>
                                     handlePickApartment(itemValue)
                                 }>
-                                <Picker.Item label="None" value={0} />
-                                {aparments.map(e => {
-                                    return (<Picker.Item label={e.name} value={e.id} />)
-                                })}
+                                     <Picker.Item label="" value={0} />
+                                {
+                                    aparments!=null && aparments.length>0?aparments.map((e,i) => {
+                                        return (<Picker.Item key={i} label={e.name} value={e.id} />)
+                                    })
+                                    : <Picker.Item label="None" value={0} />
+                                }
                             </Picker>
                         </View>
-                        : <View></View>}
                     <View style={{ marginLeft: 13, flexDirection: 'row', flexWrap: 'nowrap', width: '100%', height: 50, alignItems: 'center' }}>
                         <Text style={{ fontWeight: '500' }}>Chọn căn hộ: </Text>
                         <Picker
@@ -157,16 +163,16 @@ export default function ModuleScreen({ navigation }) {
                             onValueChange={(itemValue) =>
                                 handlePickUnit(itemValue)
                             }>
-                            <Picker.Item label="" value={0} />
-                            {units != null && units.length > 0 ? units.map(e => {
-                                return (<Picker.Item label={e.name} value={e.id} />)
-                            }) : <Picker.Item label="None" value={0} />}
+                                <Picker.Item label="" value={0} />
+                            {units != null && units.length > 0 ? units.map((e,i) => {
+                                return (<Picker.Item key={i} label={e.name} value={e.id} />)
+                            }) : <Picker.Item  label="None" value={0} />}
                         </Picker>
                     </View>
                     <Button onPress={() => fetchModule()} title="danh sách module"></Button>
                     <View style={{ padding: 10 }}>
-                        {modules != null && modules.length > 0 ? modules.map(e => {
-                            return <View style={styles.item}>
+                        {modules != null && modules.length > 0 ? modules.map((e,i) => {
+                            return <View key={i} style={styles.item}>
                                 <View style={{ position: 'relative' }}><Icon color='#fff' name='rocket' size={30}></Icon></View>
                                 <View style={styles.itemleft}>
                                     <Icon name="building" size={80} color={theme.colors.mainColor} />

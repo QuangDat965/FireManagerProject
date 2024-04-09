@@ -3,6 +3,7 @@ using FireManagerServer.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Text;
+using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
 namespace FireManagerServer.BackgroundServices
@@ -11,50 +12,67 @@ namespace FireManagerServer.BackgroundServices
     {
         MqttMsgPublishEventArgs data;
         IConfiguration configuration;
-        static ProcessData instance = null;
-        private ProcessData(MqttMsgPublishEventArgs e, IConfiguration configuration)
+        public ProcessData(MqttMsgPublishEventArgs e, IConfiguration configuration)
         {
             data = e;
             this.configuration = configuration;
-        }
-        public static ProcessData GetInstance(MqttMsgPublishEventArgs e, IConfiguration configuration)
-        {
-            if (instance == null)
-            {
-                instance = new ProcessData(e, configuration);
-            }
-            return instance;
         }
         private DbContextOptions<FireDbContext> GetBuilder()
         {
             var option = new DbContextOptionsBuilder<FireDbContext>().UseMySql(configuration["ConnectionStrings:MySqlConnection"], new MySqlServerVersion(new Version(5, 7, 0))).Options;
             return option;
         }
-        public Task TestLog()
+        public void TestLog()
         {
             Console.WriteLine("Topic: " + data.Topic);
             Console.WriteLine("Payload: " + Encoding.UTF8.GetString(data.Message));
-            return Task.CompletedTask;
+      
         }
-        public async Task SyncModule()
+        public void SyncModuleAndDevice()
         {
             var arrgs = data.Topic.Split("/");
             var moduleId = arrgs[1];
+            Console.WriteLine("MOdule name: " + moduleId);
 
             using (var dbcontext = new FireDbContext(GetBuilder()))
             {
-                var module = await dbcontext.Modules.FirstOrDefaultAsync(p => p.Id == moduleId);
+                var module =  dbcontext.Modules.FirstOrDefault(p => p.Id == moduleId);
                 if (module == null)
                 {
-                    await dbcontext.AddAsync(new Module()
+                     dbcontext.Add(new Module()
                     {
                         Id = moduleId,
                         ModuleName = moduleId
                     });
-                    await dbcontext.SaveChangesAsync();
-                }
+                //synsc device 
+                var devices = dbcontext
+            }
+        }
+        public void ProcessAutoThresh()
+        {
+            var arrgs = data.Topic.Split("/");
+            var payload = Encoding.UTF8.GetString(data.Message);
+            using (var dbcontext = new FireDbContext(GetBuilder()))
+            {
+               var rules = dbcontext.Rules.Where(p=>p.isActive==true).ToList();
+                rules.ForEach(r =>
+                {
+                    if (r.NameCompare == data.Topic)
+                    {
+                        if (int.Parse(payload) >= int.Parse(r.Threshold))
+                        {
+                            SendAutoThresh(r.TopicWrite, r.Status);
+                        }
+                    }
+                });
             }
         }
 
+        private void SendAutoThresh(string topicWrite, string status)
+        {
+            var client = new MqttClient("broker.emqx.io");
+            client.Connect(Guid.NewGuid().ToString());
+            client.Publish(topicWrite,Encoding.UTF8.GetBytes(status));
+        }
     }
 }

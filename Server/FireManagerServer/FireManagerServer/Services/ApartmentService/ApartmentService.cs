@@ -36,14 +36,26 @@ namespace FireManagerServer.Services.ApartmentService
             return true;
         }
 
-        public async Task<List<Apartment>> Get(string userId, string ? searchKey)
+        public async Task<List<Apartment>> Get(string userId, ApartmentFilter filter)
         {
             var list = await(from data in dbContext.Apartments
                              where data.UserId == userId
                              select data).ToListAsync();
-            if(!string.IsNullOrEmpty(searchKey))
+            if(!string.IsNullOrEmpty(filter.SearchKey))
             {
-                list = list.Where(_ => _.Name.Contains(searchKey)).ToList();
+                list = list.Where(_ => _.Name.Contains(filter.SearchKey)).ToList();
+            }
+            if(filter.OrderBy == Common.OrderType.ByName)
+            {
+                list = list.OrderBy(p=>p.Name).ToList();
+            }
+            else if (filter.OrderBy == Common.OrderType.ByDateNear)
+            {
+                list = list.OrderBy(p => p.DateCreate).ToList();
+            }
+            else if (filter.OrderBy == Common.OrderType.ByDateFar)
+            {
+                list = list.OrderByDescending(p => p.DateCreate).ToList();
             }
             return list;
         }
@@ -53,10 +65,18 @@ namespace FireManagerServer.Services.ApartmentService
             return await dbContext.Apartments.ToListAsync();
         }
 
-        public async Task<bool> Update(Apartment request)
+        public async Task<bool> Update(ApartmentUpdateDto request)
         {
-            dbContext.Update(request);
-            dbContext.SaveChanges();
+            var rs = await dbContext.Apartments.FirstOrDefaultAsync(p=>p.Id == request.Id);
+            if(rs==null)
+            {
+                return false;
+            }
+            rs.Desc = request.Desc;
+            rs.Name = request.Name;
+            rs.DateUpdate = DateTime.Now;
+            dbContext.Update(rs);
+            await dbContext.SaveChangesAsync();
             return true;
         }
     }

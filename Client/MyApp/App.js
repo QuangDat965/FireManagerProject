@@ -12,6 +12,7 @@ import {
   UnitScreen,
   ModuleScreen,
   UnitDetailScreen,
+  AutoScreen,
 } from './src/screens'
 import ApartmentScreen from './src/screens/ApartmentScreen'
 
@@ -22,7 +23,7 @@ export default function App() {
     <Provider theme={theme}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="StartScreen"
+          initialRouteName="AutoScreen"
           screenOptions={{
             headerShown: false,
           }}
@@ -35,6 +36,7 @@ export default function App() {
           <Stack.Screen name="UnitScreen" component={UnitScreen} />
           <Stack.Screen name="ModuleScreen" component={ModuleScreen} />
           <Stack.Screen name="UnitDetailScreen" component={UnitDetailScreen} />
+          <Stack.Screen name="AutoScreen" component={AutoScreen} />
           <Stack.Screen
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}

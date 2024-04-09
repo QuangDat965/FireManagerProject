@@ -16,10 +16,7 @@ namespace FireManagerServer.BackgroundServices
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            client.MqttMsgPublishReceived += async (s, e) =>
-            {
-                await ProcessEventAsync(s, e);
-            };
+            client.MqttMsgPublishReceived += ProcessEventAsync ;
             string[] topic = new string[] { configuration.GetValue<string>("SystemId") + "/#" };
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -41,12 +38,13 @@ namespace FireManagerServer.BackgroundServices
             }
         }
 
-        private async Task ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
+        private  void ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
 
-            var processcer = ProcessData.GetInstance(e, configuration);
-            await processcer.TestLog();
-            await processcer.SyncModule();
+            var processcer = new ProcessData(e, configuration);
+             processcer.TestLog();
+             processcer.SyncModuleAndDevice();
+            
         }
     }
 }

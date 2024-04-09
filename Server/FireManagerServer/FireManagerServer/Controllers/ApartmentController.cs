@@ -21,11 +21,11 @@ namespace FireManagerServer.Controllers
             this.apartmentService = apartmentService;
             this.jwtService = jwtService;
         }
-        [HttpGet("getlist")]
-        public async Task<List<Apartment>> GetList([FromHeader] string? searchKey)
+        [HttpPost("getlist")]
+        public async Task<List<Apartment>> GetList([FromBody] ApartmentFilter filter)
         {
             var rs = CommomFuncition.GetTokenBear(HttpContext);
-            return await apartmentService.Get(jwtService.GetId(rs), searchKey);
+            return await apartmentService.Get(jwtService.GetId(rs), filter);
         }
         [HttpGet("getall")]
         public async Task<List<Apartment>> GetAll()
@@ -46,7 +46,7 @@ namespace FireManagerServer.Controllers
             return await apartmentService.Delete(request.Id);
         }
         [HttpPost("update")]
-        public async Task<bool> Update([FromBody] Apartment request)
+        public async Task<bool> Update([FromBody] ApartmentUpdateDto request)
         {
             return await apartmentService.Update(request);
         }
