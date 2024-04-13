@@ -16,6 +16,6 @@ namespace FireManagerServer.Database.Entity
         public string Port { get; set; }
         [ForeignKey("ModuleId")]
         public string ModuleId { get; set; }
-        public Module  Module { get; set; }
+        public Module?  Module { get; set; }
     }
 }

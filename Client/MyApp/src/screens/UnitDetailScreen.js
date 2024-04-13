@@ -12,6 +12,7 @@ import MqttService from '../helpers/mqttService';
 export default function UnitDetailScreen(router) {
     const [dataModule, setDataModule] = useState([])
     const [screenControl, setScreenControl] = useState(0)
+    const [devices, setDevice] = useState([])
     const unit = router.route.params.unit;
 
     useEffect(() => {
@@ -21,6 +22,15 @@ export default function UnitDetailScreen(router) {
                 "unitId": unit.id
             });
             const systemId = await getDataNo('System/id');
+            modules.map(async e => {
+                const deviceModules = await getData(`Device/${e.id}`);
+                if (deviceModules != null && deviceModules.length > 0) {
+                    deviceModules.forEach(element => {
+                        devices.push(element)
+                        setDevice([...devices])
+                    });
+                }
+            })
             modules.map(e => {
                 MqttProcess(e.id, systemId)
             })
@@ -54,23 +64,34 @@ export default function UnitDetailScreen(router) {
                 type: parts[3],
                 name: parts[4]
             }
-            var oldData = dataModule;
-            console.log(oldData);
-            if (oldData.length <= 0) {
-                oldData.push(obj)
-                setDataModule([...oldData])
+            const datatemp = devices;
+            const findId = devices.findIndex(p => p.id == topic)
+            if (findId != -1) {
+                datatemp[findId].payload = payload;
+                setDataModule([...datatemp]);
             }
-            else {
-                var index = oldData.findIndex(p => p.id === obj.id)
-                if (index != -1) {
-                    oldData[index] = obj;
-                    setDataModule([...oldData])
+            devices.map(e => {
+                if (e.id == topic) {
+
                 }
-                else {
-                    oldData.push(obj)
-                    setDataModule([...oldData])
-                }
-            }
+            });
+            // var oldData = dataModule;
+            // console.log(oldData);
+            // if (oldData.length <= 0) {
+            //     oldData.push(obj)
+            //     setDataModule([...oldData])
+            // }
+            // else {
+            //     var index = oldData.findIndex(p => p.id === obj.id)
+            //     if (index != -1) {
+            //         oldData[index] = obj;
+            //         setDataModule([...oldData])
+            //     }
+            //     else {
+            //         oldData.push(obj)
+            //         setDataModule([...oldData])
+            //     }
+            // }
         };
     }
     const getSystemId = async () => {
@@ -82,6 +103,16 @@ export default function UnitDetailScreen(router) {
         }
         fetchdata();
         console.log(await getSystemId());
+    }
+    const handleToggle = (e) => {
+        const service = new MqttService();
+        const succcess = async () => {
+            console.log('send toggle success');
+            const payload = e.payload == null || e.payload == 0 ? "1" : "0"
+            service.sendMessage(`${e.id}`, payload);
+        }
+        service.connect(succcess);
+
     }
     return (
         <BackgroundTop>
@@ -128,85 +159,85 @@ export default function UnitDetailScreen(router) {
             </View>
 
             <Button onPress={() => testFun()} title="Thông số thiết bị"></Button>
-            <ScrollView>
+            <ScrollView style={{ marginBottom: 100 }}>
 
                 <View style={screenControl == 0 ? { padding: 10 } : { display: 'none' }}>
-                    {dataModule.length > 0 ? dataModule.map(e => {
-                       return (e.type === 'R'?<View style={styles.item}>
-                       <View style={{ position: 'relative' }}><Icon color='#fff' name='rocket' size={30}></Icon></View>
-                       <View style={styles.itemleft}>
-                           <Icon name="eye" size={80} color={theme.colors.mainColor} />
-                       </View>
-                       <View style={styles.itemright}>
-                           <View style={{ flexDirection: 'row', }}>
-                               <Text style={{ fontWeight: '500' }}>Tên sensor: {e.name} </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
-                           </View>
+                    {devices.length > 0 ? devices.map(e => {
+                        return (e.type === 0 ? <View style={styles.item}>
+                            <View style={styles.itemleft}>
+                                <Icon name="eye" size={60} color={theme.colors.mainColor} />
+                            </View>
+                            <View style={styles.itemright}>
+                                <View style={{ flexDirection: 'row', }}>
+                                    <Text style={{ fontWeight: '500' }}>Tên sensor: {e.topic} </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Giá trị: {e.payload} </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
-                           </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Giá trị: {e.payload} </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Module: </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.module}</Text>
-                           </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Module: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.moduleId}</Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Chân: </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.port}</Text>
-                           </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Chân: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.port}</Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Đơn vị: </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}>Ampe</Text>
-                           </View>
-                       </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Đơn vị: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>Ampe</Text>
+                                </View>
+                            </View>
 
-                   </View>:<View></View>)
+                        </View> : <View></View>)
                     }) :
-                    <View></View>
+                        <View></View>
                     }
                 </View>
 
                 <View style={screenControl == 1 ? { padding: 10 } : { display: 'none' }}>
-                    {dataModule.length > 0 ? dataModule.map(e => {
-                       return (e.type === 'W'?<View style={styles.item}>
-                       <View style={{ position: 'relative' }}><Icon color='#fff' name='rocket' size={30}></Icon></View>
-                       <View style={styles.itemleft}>
-                           <Icon2 name="power-off" size={80} color={theme.colors.mainColor} />
-                       </View>
-                       <View style={styles.itemright}>
-                           <View style={{ flexDirection: 'row', }}>
-                               <Text style={{ fontWeight: '500' }}>Chức năng: {e.name} </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
-                           </View>
+                    {devices.length > 0 ? devices.map(e => {
+                        return (e.type === 1 ? <View style={styles.item}>
+                            <View style={styles.itemleft}>
+                                <TouchableOpacity onPress={() => handleToggle(e)}>
+                                    <Icon2 name={e.payload == 1 ? 'toggle-on' : 'toggle-off'} size={60} color={theme.colors.mainColor} />
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.itemright}>
+                                <View style={{ flexDirection: 'row', }}>
+                                    <Text style={{ fontWeight: '500' }}>Chức năng: {e.topic} </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Trạng thái: {e.payload} </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
-                           </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Trạng thái: {e.payload} </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}></Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Module: </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.module}</Text>
-                           </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Module: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.moduleId}</Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Chân: </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.port}</Text>
-                           </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Chân: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.port}</Text>
+                                </View>
 
-                           <View style={{ flexDirection: 'row' }}>
-                               <Text style={{ fontWeight: '500' }}>Đơn vị: </Text>
-                               <Text style={{ fontWeight: '500', opacity: 0.7 }}>On/OFF</Text>
-                           </View>
-                       </View>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <Text style={{ fontWeight: '500' }}>Đơn vị: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>On/OFF</Text>
+                                </View>
+                            </View>
 
-                   </View>:<View></View>)
+                        </View> : <View></View>)
                     }) :
-                    <View></View>
+                        <View></View>
                     }
                 </View>
             </ScrollView>
@@ -261,7 +292,9 @@ const styles = StyleSheet.create({
     itemleft: {
         height: 80,
         width: 80,
-        marginRight: 10
+        justifyContent: 'center',
+        alignItems: 'center'
+
     },
     box: {
         // backgroundColor:'#ccc',

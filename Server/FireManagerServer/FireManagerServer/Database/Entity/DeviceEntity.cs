@@ -9,11 +9,11 @@ namespace FireManagerServer.Database.Entity
         [Key]
         public string Id { get; set; }
         public string Topic { get; set; }
-        public string Payload { get; set; }
         public DeviceType Type { get; set; }
         [ForeignKey("ModuleId")]
         public string ModuleId { get; set; }
         public Module Module { get; set; }
+        public string Port { get; set; }
 
     }
 }

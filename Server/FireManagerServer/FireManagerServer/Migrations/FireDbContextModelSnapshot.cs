@@ -47,6 +47,39 @@ namespace FireManagerServer.Migrations
                     b.ToTable("Apartments");
                 });
 
+            modelBuilder.Entity("FireManagerServer.Database.Entity.DeviceEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<DateTime?>("DateCreate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DateUpdate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ModuleId")
+                        .IsRequired()
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("Port")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleId");
+
+                    b.ToTable("Devices");
+                });
+
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
                 {
                     b.Property<string>("Id")
@@ -115,6 +148,14 @@ namespace FireManagerServer.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(95)");
 
+                    b.Property<string>("NameCompare")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Port")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -123,13 +164,12 @@ namespace FireManagerServer.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TopicRead")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<string>("TopicWrite")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<bool>("isActive")
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
 
@@ -219,6 +259,17 @@ namespace FireManagerServer.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.DeviceEntity", b =>
+                {
+                    b.HasOne("FireManagerServer.Database.Entity.Module", "Module")
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>

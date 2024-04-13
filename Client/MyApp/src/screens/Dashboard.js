@@ -4,9 +4,8 @@ import BackgroundTop from '../components/BackgroundTop'
 import Logo from '../components/Logo'
 import Header from '../components/Header'
 import Paragraph from '../components/Paragraph'
-import { View, Text, Button, TouchableOpacity, SafeAreaView, StyleSheet, Image } from 'react-native'
+import { View, Text, Button, TouchableOpacity, SafeAreaView, StyleSheet, Image, ScrollView } from 'react-native'
 import HeaderTopD from '../components/HeaderTopD'
-import { ScrollView } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { theme } from '../core/theme'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
   item: {
     margin: 5,
     backgroundColor: '#fff',
-    width: 130,
+    width: 120,
     height: 130,
     justifyContent: 'center',
     alignItems: 'center',

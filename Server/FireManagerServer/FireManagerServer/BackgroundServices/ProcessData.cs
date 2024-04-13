@@ -26,26 +26,44 @@ namespace FireManagerServer.BackgroundServices
         {
             Console.WriteLine("Topic: " + data.Topic);
             Console.WriteLine("Payload: " + Encoding.UTF8.GetString(data.Message));
-      
+
         }
         public void SyncModuleAndDevice()
         {
             var arrgs = data.Topic.Split("/");
             var moduleId = arrgs[1];
+            var deviceName = arrgs[4];
+            var deviceType = arrgs[3];
+            var devicePort = arrgs[2];
             Console.WriteLine("MOdule name: " + moduleId);
 
             using (var dbcontext = new FireDbContext(GetBuilder()))
             {
-                var module =  dbcontext.Modules.FirstOrDefault(p => p.Id == moduleId);
+                var module = dbcontext.Modules.FirstOrDefault(p => p.Id == moduleId);
                 if (module == null)
                 {
-                     dbcontext.Add(new Module()
+                    dbcontext.Add(new Module()
                     {
                         Id = moduleId,
                         ModuleName = moduleId
                     });
+                    dbcontext.SaveChanges();                
+                }
                 //synsc device 
-                var devices = dbcontext
+                var device = dbcontext.Devices.FirstOrDefault(p => p.Id == data.Topic);
+                if (device == null)
+                {
+                    dbcontext.Add(new DeviceEntity()
+                    {
+                        Id = data.Topic,
+                        Topic = deviceName,
+                        Port = devicePort,
+                        Type = deviceType == "R" ? Common.DeviceType.R : Common.DeviceType.W,
+                        ModuleId = moduleId
+                    });
+                    dbcontext.SaveChanges();
+                }
+
             }
         }
         public void ProcessAutoThresh()
@@ -54,7 +72,7 @@ namespace FireManagerServer.BackgroundServices
             var payload = Encoding.UTF8.GetString(data.Message);
             using (var dbcontext = new FireDbContext(GetBuilder()))
             {
-               var rules = dbcontext.Rules.Where(p=>p.isActive==true).ToList();
+                var rules = dbcontext.Rules.Where(p => p.isActive == true).ToList();
                 rules.ForEach(r =>
                 {
                     if (r.NameCompare == data.Topic)
@@ -72,7 +90,7 @@ namespace FireManagerServer.BackgroundServices
         {
             var client = new MqttClient("broker.emqx.io");
             client.Connect(Guid.NewGuid().ToString());
-            client.Publish(topicWrite,Encoding.UTF8.GetBytes(status));
+            client.Publish(topicWrite+"/Sub", Encoding.UTF8.GetBytes(status));
         }
     }
 }

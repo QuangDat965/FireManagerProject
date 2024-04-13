@@ -18,7 +18,7 @@ internal class Program
 
         var gaspush = $"{systemid}/ESP32-1/D2/R/Gas";
         var tempaturepush = $"{systemid}/ESP32-1/D3/R/Tempature";
-        var window = $"{systemid}/ESP32-1/D4/W/Window";
+        var window = $"{systemid}/ESP32-1/D16/W/ChuongChay";
 
         var gaspush2 = $"{systemid}/ESP32-2/D2/R/Gas";
         var tempaturepush2 = $"{systemid}/ESP32-2/D3/R/Tempature";

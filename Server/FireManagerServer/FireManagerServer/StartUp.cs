@@ -3,8 +3,10 @@ using FireManagerServer.Database;
 using FireManagerServer.Service.JwtService;
 using FireManagerServer.Services.ApartmentService;
 using FireManagerServer.Services.AuthenService;
+using FireManagerServer.Services.DeviceServices;
 using FireManagerServer.Services.ModuleServices;
 using FireManagerServer.Services.RoleService;
+using FireManagerServer.Services.RuleServiceServices;
 using FireManagerServer.Services.UnitServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -24,6 +26,8 @@ namespace FireManagerServer
             builder.Services.AddScoped<IApartmentService, ApartmentService>();
             builder.Services.AddScoped<IUnitService, UnitService>();
             builder.Services.AddScoped<IModuleService, ModuleService>();
+            builder.Services.AddScoped<IRuleService, RuleService>();
+            builder.Services.AddScoped<IDeviceService, DeviceService>();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAllHeaders",

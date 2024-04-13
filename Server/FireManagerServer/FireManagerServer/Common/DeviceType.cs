@@ -2,7 +2,7 @@
 {
     public enum DeviceType
     {
-        Read = 0,
-        Write = 1
+        R = 0,
+        W = 1
     }
 }
