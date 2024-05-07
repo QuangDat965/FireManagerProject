@@ -3,15 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FireManagerServer.Database.Entity
 {
-    public class Unit:BaseDate
+    public class Building:BaseDate
     {
-        [Key]
         public string Id { get; set; }
         public string Name { get; set; }
         public string? Desc { get; set; }
-        [ForeignKey("ApartmentId")]
-        public string? ApartmentId { get; set; }
-        public Apartment? Apartment { get; set; }
-        public List<Module>? Modules { get; set; }
+        public List<Apartment>? Apartments { get; set; }
+        public string? UserId { get; set; }
+        public UserEntity? User { get; set; }
     }
 }

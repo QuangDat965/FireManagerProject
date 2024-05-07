@@ -44,7 +44,7 @@ namespace FireManagerServer.BackgroundServices
             var processcer = new ProcessData(e, configuration);
              processcer.TestLog();
              processcer.SyncModuleAndDevice();
-            processcer.ProcessAutoThresh();
+        
             
         }
     }

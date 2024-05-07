@@ -5,6 +5,8 @@ import {
     TouchableOpacity, ScrollView, Button, Modal
 
 } from 'react-native';
+// import { CheckBoxCus as CheckBox } from '../components/CheckBox';
+import CheckBox from 'expo-checkbox'
 import { theme } from '../core/theme'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon2 from 'react-native-vector-icons/FontAwesome5';
@@ -12,7 +14,7 @@ import TextInput from '../components/TextInput';
 import ButtonC from '../components/Button';
 import { Picker } from '@react-native-picker/picker';
 import CustomAlert from '../components/CustomAlert';
-import { postData } from '../api/Api';
+import { getData, postData, putData } from '../api/Api';
 
 
 export default function UnitScreen({ navigation }) {
@@ -30,18 +32,22 @@ export default function UnitScreen({ navigation }) {
     const [modalRepair, setmodalRepair] = useState(false)
     const [idUnitRemove, setIdUnitRemove] = useState('')
     const [alert, setAlert] = useState(false)
+    const [modelLink, setModelLink] = useState(false)
+    const [unitCheckboxs, setUnitCheckbox] = useState([])
+    const [idCheckboxs, setIdCheckBox] = useState("")
+    const [neighbours, setNeigbour] = useState([])
     useEffect(() => {
 
         initial()
     }, [])
     const fetchdata = async () => {
-        const dt = await postData('Apartment/getlist', {
+        const dt = await postData('Building/getlist', {
 
         });
         setApartment(dt);
     }
     const initial = async () => {
-        const dt = await postData('Apartment/getlist', {
+        const dt = await postData('Building/getlist', {
 
         });
         fetchUnit(dt[0].id);
@@ -50,11 +56,21 @@ export default function UnitScreen({ navigation }) {
 
     }
     const fetchUnit = async (apartmentId) => {
-        const dt = await postData('Unit/getbyapartment', {
+        const dt = await postData('Apartment/getbyapartment', {
             "id": apartmentId,
             "searchKey": searchKey,
             "orderBy": ordervalue
         });
+        var list = [];
+        dt.forEach(async e => {
+            const rs = await getData("Apartment/neighbour/" + e.id);
+            var newonj = {
+                id: e.id,
+                neighbour: rs
+            }
+            list.push(newonj);
+        });
+        setUnitCheckbox(list);
         setUnit(dt);
     }
     const onPressAddCancel = () => {
@@ -65,7 +81,7 @@ export default function UnitScreen({ navigation }) {
         fetchUnit(aparmenId);
     }
     const onPressAdd = async () => {
-        const rs = await postData('Unit/add', {
+        const rs = await postData('Apartment/add', {
             "name": name,
             "apartmentId": aparmenId,
             "desc": desc
@@ -78,7 +94,7 @@ export default function UnitScreen({ navigation }) {
         }
     }
     const handleSort = async (sort) => {
-        const dt = await postData('Unit/getbyapartment', {
+        const dt = await postData('Apartment/getbyapartment', {
             "id": aparmenId,
             "searchKey": searchKey,
             "orderBy": sort
@@ -89,7 +105,7 @@ export default function UnitScreen({ navigation }) {
     }
     const handleChangeSearch = async (value) => {
         setSearchKey(value)
-        const dt = await postData('Unit/getbyapartment', {
+        const dt = await postData('Apartment/getbyapartment', {
             "id": aparmenId,
             "searchKey": value,
             "orderBy": ordervalue
@@ -106,7 +122,7 @@ export default function UnitScreen({ navigation }) {
         setmodalRepair(false)
     }
     const onPressAddRepair = async () => {
-        const dt = await postData('Unit/update', {
+        const dt = await postData('Apartment/update', {
             "id": unit.id,
             "name": name,
             "desc": desc
@@ -120,15 +136,53 @@ export default function UnitScreen({ navigation }) {
         setAlert(true)
     }
     const onOkAlert = async () => {
-        const dt = await postData('Unit/delete', {
+        const dt = await postData('Apartment/delete', {
             "id": idUnitRemove
-           
+
         });
         setAlert(false)
         fetchUnit(aparmenId)
     }
     const onCloseAlert = () => {
         setAlert(false)
+    }
+    const handleLink = async (e) => {
+        // const rs = await getData("Apartment/neighbour/"+e.id);
+        // setUnitCheckbox([rs])
+        setIdCheckBox(e.id);
+        console.log("unitCheck", unitCheckboxs);
+        setModelLink(true)
+    }
+    const handleClickLink = (check) => {
+        console.log(check);
+        console.log(unitCheckboxs);
+        unitCheckboxs.map(e => {
+            if (e.id == idCheckboxs) {
+                if (check.isChecked) {
+                    e.neighbour = e.neighbour.filter(p => p.id != check.id);
+                }
+                else {
+                    e.neighbour.push(check)
+                }
+            }
+        })
+        setUnitCheckbox([...unitCheckboxs])
+    }
+    const onSaveLink = () => {
+        unitCheckboxs.map(async e => {
+            if (e.id == idCheckboxs) {
+                
+                const rs = await postData('Apartment/neighbour', {
+
+                    "currentApartmentId": idCheckboxs,
+                    "neighboudIds": e.neighbour.map(p=>p.id)
+
+                })
+             if(rs == true) {
+                setModelLink(false);
+             }
+            }
+        })
     }
     return (
         <BackgroundTop>
@@ -152,14 +206,6 @@ export default function UnitScreen({ navigation }) {
                             onChangeText={(text) => setDesc(text)}
                             autoCapitalize="none"
                         />
-                        <TextInput
-                            label={aparmenId}
-                            returnKeyType="next"
-                            value={aparmenId}
-                            autoCapitalize="none"
-                        />
-
-
                         <ButtonC onPress={onPressAdd} mode="contained" >
                             Submit
                         </ButtonC>
@@ -196,6 +242,46 @@ export default function UnitScreen({ navigation }) {
                         </ButtonC>
                     </View>
                 </View>
+                {/* model link */}
+                <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modelLink}
+                    onRequestClose={() => {
+
+                    }}
+                >
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <View style={{ height: 400, width: 200, backgroundColor: 'white', padding: 20 }}>
+                            <Text>Các liên kết</Text>
+                            <ScrollView >
+                                {units != null && units.length > 0 ? units.map((e, i) => {
+                                    e["isChecked"] = false;
+                                    unitCheckboxs.map((e2, i2) => {
+                                        if (idCheckboxs == e2.id) {
+                                            e2.neighbour.map(e3 => {
+                                                if (e3.id == e.id) {
+                                                    e.isChecked = true
+                                                }
+                                            })
+                                        }
+                                    })
+                                    return e.id == idCheckboxs ? "" : <View style={{flexDirection:'row', padding:6}} key={i}>
+                                        <CheckBox disabled={false} value={e.isChecked} onValueChange={() => {
+                                            handleClickLink(e)
+                                        }} />
+                                        <Text style={{marginLeft:5}}>{e.name}</Text>
+                                    </View>
+                                }) : <View></View>}
+                            </ScrollView>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Button title='Close' onPress={() => { setModelLink(false) }}></Button>
+                                <Button color={theme.colors.mainColor} title='Save' onPress={() => { onSaveLink() }}></Button>
+                            </View>
+
+                        </View>
+                    </View>
+                </Modal>
                 {/* header */}
                 <View style={styles.header}>
                     <View style={[styles.box, { width: '30%', }]}>
@@ -227,18 +313,6 @@ export default function UnitScreen({ navigation }) {
                     </View>
                     <View style={{ width: '20%', justifyContent: 'center', alignItems: 'center', position: 'relative', zIndex: 10 }}>
                         <Icon2 onPress={() => { sortScreen == false ? setSortscreen(true) : setSortscreen(false) }} size={30} color={theme.colors.mainColor} name='sort'></Icon2>
-                        {/* Sort modal */}
-                        {/* <View style={sortScreen == false ? { display: 'none' } : { width: 100, height: 120, backgroundColor: '#fff', position: 'absolute',borderWidth:2, bottom: -120, right: 0, zIndex: 2, borderRadius: 10 }}>
-                            <TouchableOpacity onPress={() => handleSort(1)} style={{borderBottomWidth:2, height: 30, justifyContent: 'center', alignItems:'center', padding: 5, }}>
-                                <Text>Theo tên </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleSort(0)} style={{borderBottomWidth:2, height: 36, justifyContent: 'center', alignItems:'center', padding: 5, }} >
-                                <Text>Theo ngày <Icon2 name="long-arrow-alt-up"></Icon2> </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleSort(2)} style={{borderBottomWidth:2, height: 36, justifyContent: 'center', alignItems:'center', padding: 5, }}>
-                                <Text>Theo ngày <Icon2 name="long-arrow-alt-down"></Icon2> </Text>
-                            </TouchableOpacity>
-                        </View> */}
                         <Modal
                             animationType="slide"
                             transparent={true}
@@ -286,10 +360,9 @@ export default function UnitScreen({ navigation }) {
                             return <View key={i} style={styles.item}>
                                 <Icon2 onPress={() => handleRepair(e)} name='tools' size={20} color='blue' style={{ position: 'absolute', right: 5, top: 5 }}></Icon2>
                                 <Icon2 onPress={() => handleRemove(e.id)} name='trash-alt' size={20} color='red' style={{ position: 'absolute', right: 35, top: 5 }}></Icon2>
-
-                                <View style={{ position: 'relative' }}><Icon color='#fff' name='rocket' size={30}></Icon></View>
+                                <Icon2 onPress={() => handleLink(e)} name='link' size={20} color='green' style={{ position: 'absolute', right: 65, top: 5 }}></Icon2>                              
                                 <View style={styles.itemleft}>
-                                    <Icon name="home" size={80} color={theme.colors.mainColor} />
+                                    <Icon name="home" size={70} color={theme.colors.mainColor} />
                                 </View>
                                 <View style={styles.itemright}>
                                     <View style={{ flexDirection: 'row', }}>
@@ -355,7 +428,7 @@ const styles = StyleSheet.create({
     itemleft: {
         height: 80,
         width: 80,
-        marginRight: 10
+        
     },
     box: {
         // backgroundColor:'#ccc',

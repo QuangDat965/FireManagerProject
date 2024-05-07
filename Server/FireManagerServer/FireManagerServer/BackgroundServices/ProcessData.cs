@@ -1,4 +1,5 @@
-﻿using FireManagerServer.Database;
+﻿using FireManagerServer.Common;
+using FireManagerServer.Database;
 using FireManagerServer.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -32,58 +33,68 @@ namespace FireManagerServer.BackgroundServices
         {
             var arrgs = data.Topic.Split("/");
             var moduleId = arrgs[1];
-            var deviceName = arrgs[4];
-            var deviceType = arrgs[3];
-            var devicePort = arrgs[2];
-            Console.WriteLine("MOdule name: " + moduleId);
+            var moduleName = arrgs[2];
+            string message = System.Text.Encoding.UTF8.GetString(data.Message);
+            var devices = new List<SensorModel>();
 
             using (var dbcontext = new FireDbContext(GetBuilder()))
             {
+                //synsc module
                 var module = dbcontext.Modules.FirstOrDefault(p => p.Id == moduleId);
                 if (module == null)
                 {
                     dbcontext.Add(new Module()
                     {
                         Id = moduleId,
-                        ModuleName = moduleId
+                        ModuleName = moduleName
                     });
                     dbcontext.SaveChanges();                
                 }
                 //synsc device 
-                var device = dbcontext.Devices.FirstOrDefault(p => p.Id == data.Topic);
-                if (device == null)
+                string sub = "";
+                try
                 {
-                    dbcontext.Add(new DeviceEntity()
+                    sub = arrgs[3];               
+                }
+                catch (Exception)
+                {
+                    
+                }
+                try
+                {
+                    devices = message.ToSensorModel();
+                }
+                catch (Exception) { };
+                var deviceEntities = new List<DeviceEntity>();
+                if(devices?.Count>0 && string.IsNullOrEmpty(sub))
+                {
+                    foreach (var device in devices)
                     {
-                        Id = data.Topic,
-                        Topic = deviceName,
-                        Port = devicePort,
-                        Type = deviceType == "R" ? Common.DeviceType.R : Common.DeviceType.W,
-                        ModuleId = moduleId
-                    });
+                        var deviceDb = dbcontext.Devices.FirstOrDefault(p => p.Topic == device.Name);
+                        if (deviceDb == null && string.IsNullOrEmpty(sub))
+                        {
+                            deviceEntities.Add(new DeviceEntity()
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                Topic = device.Name,
+                                Port = device.Port,
+                                Type = device.Type == "R" ? Common.DeviceType.R : Common.DeviceType.W,
+                                ModuleId = moduleId,
+                                Unit = device.Unit,
+                            });
+                        }
+                    }
+                }          
+                if(deviceEntities.Count>0)
+                {
+                    dbcontext.Devices.AddRange(deviceEntities);
                     dbcontext.SaveChanges();
                 }
-
             }
         }
         public void ProcessAutoThresh()
         {
-            var arrgs = data.Topic.Split("/");
-            var payload = Encoding.UTF8.GetString(data.Message);
-            using (var dbcontext = new FireDbContext(GetBuilder()))
-            {
-                var rules = dbcontext.Rules.Where(p => p.isActive == true).ToList();
-                rules.ForEach(r =>
-                {
-                    if (r.NameCompare == data.Topic)
-                    {
-                        if (int.Parse(payload) >= int.Parse(r.Threshold))
-                        {
-                            SendAutoThresh(r.TopicWrite, r.Status);
-                        }
-                    }
-                });
-            }
+          
         }
 
         private void SendAutoThresh(string topicWrite, string status)
@@ -93,4 +104,58 @@ namespace FireManagerServer.BackgroundServices
             client.Publish(topicWrite+"/Sub", Encoding.UTF8.GetBytes(status));
         }
     }
+}
+
+public static class CustomMapper
+{
+    public static List<SensorModel> ToSensorModel(this string messsages)
+    {
+        var rs = new List<SensorModel>();
+        var arrMessages = messsages.Split(",");
+
+        foreach (var messsage in arrMessages)
+        {
+            var model = new SensorModel();
+            if (!string.IsNullOrEmpty(messsage))
+            {
+                var keyvalues = messsage.Trim('{', '}').Split(";");
+                var list = new List<SensorModel>();
+                foreach (var keyvalue in keyvalues)
+                {
+                    var key = keyvalue.Split(':')[0];
+                    var value = keyvalue.Split(':')[1];
+                    if (key == "Name")
+                    {
+                        model.Name = value;
+                    }
+                    if (key == "Value")
+                    {
+                        model.Value = value;
+                    }
+                    if (key == "Port")
+                    {
+                        model.Port = value;
+                    }
+                    if (key == "Type")
+                    {
+                        model.Type = value;
+                    }
+                    if (key == "Unit")
+                    {
+                        model.Unit = value;
+                    }
+                }
+                rs.Add(model);
+            }
+        }
+        return rs;
+    }
+}
+public class SensorModel
+{
+    public string Name { get; set; }
+    public string Value { get; set; }
+    public string Type { get; set; }
+    public string Port { get; set; }
+    public string Unit { get; set; }
 }

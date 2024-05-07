@@ -66,11 +66,12 @@ const postData = async (end,postData) => {
 // Hàm gửi yêu cầu PUT
 const putData = async (id, putData) => {
   try {
+    const token = await AsyncStorage.getItem('token');
     const response = await fetch(`${API_URL}/data/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${ACCESS_TOKEN}`
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(putData)
     });

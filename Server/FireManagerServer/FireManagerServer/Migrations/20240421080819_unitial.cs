@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace FireManagerServer.Migrations
 {
-    public partial class addthresholdv3 : Migration
+    public partial class unitial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -66,7 +66,7 @@ namespace FireManagerServer.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Apartments",
+                name: "Buildings",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(95)", nullable: false)
@@ -82,17 +82,18 @@ namespace FireManagerServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Apartments", x => x.Id);
+                    table.PrimaryKey("PK_Buildings", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Apartments_Users_UserId",
+                        name: "FK_Buildings_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserId");
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Units",
+                name: "Apartments",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "varchar(95)", nullable: false)
@@ -101,19 +102,48 @@ namespace FireManagerServer.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Desc = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ApartmentId = table.Column<string>(type: "varchar(95)", nullable: true)
+                    BuldingId = table.Column<string>(type: "varchar(95)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsFire = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     DateCreate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     DateUpdate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Units", x => x.Id);
+                    table.PrimaryKey("PK_Apartments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Units_Apartments_ApartmentId",
+                        name: "FK_Apartments_Buildings_BuldingId",
+                        column: x => x.BuldingId,
+                        principalTable: "Buildings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ApartmentNeighbours",
+                columns: table => new
+                {
+                    ApartmentId = table.Column<string>(type: "varchar(95)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NeighbourId = table.Column<string>(type: "varchar(95)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApartmentNeighbours", x => new { x.ApartmentId, x.NeighbourId });
+                    table.ForeignKey(
+                        name: "FK_ApartmentNeighbours_Apartments_ApartmentId",
                         column: x => x.ApartmentId,
                         principalTable: "Apartments",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApartmentNeighbours_Apartments_NeighbourId",
+                        column: x => x.NeighbourId,
+                        principalTable: "Apartments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -128,7 +158,7 @@ namespace FireManagerServer.Migrations
                     Status = table.Column<bool>(type: "tinyint(1)", nullable: true),
                     Desc = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UnitId = table.Column<string>(type: "varchar(95)", nullable: true)
+                    ApartmentId = table.Column<string>(type: "varchar(95)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     UserId = table.Column<string>(type: "varchar(95)", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -139,15 +169,47 @@ namespace FireManagerServer.Migrations
                 {
                     table.PrimaryKey("PK_Modules", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Modules_Units_UnitId",
-                        column: x => x.UnitId,
-                        principalTable: "Units",
-                        principalColumn: "Id");
+                        name: "FK_Modules_Apartments_ApartmentId",
+                        column: x => x.ApartmentId,
+                        principalTable: "Apartments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Modules_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserId");
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Devices",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "varchar(95)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Topic = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    ModuleId = table.Column<string>(type: "varchar(95)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Port = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Unit = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DateCreate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DateUpdate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Devices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Devices_Modules_ModuleId",
+                        column: x => x.ModuleId,
+                        principalTable: "Modules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -157,18 +219,10 @@ namespace FireManagerServer.Migrations
                 {
                     Id = table.Column<string>(type: "varchar(95)", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Desc = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TopicRead = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Threshold = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TopicWrite = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Status = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     ModuleId = table.Column<string>(type: "varchar(95)", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TypeRule = table.Column<int>(type: "int", nullable: false),
+                    isActive = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -182,15 +236,60 @@ namespace FireManagerServer.Migrations
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.CreateTable(
+                name: "TopicThreshholds",
+                columns: table => new
+                {
+                    DeviceId = table.Column<string>(type: "varchar(95)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RuleId = table.Column<string>(type: "varchar(95)", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ThreshHold = table.Column<int>(type: "int", nullable: true),
+                    Value = table.Column<int>(type: "int", nullable: true),
+                    TypeCompare = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TopicThreshholds", x => new { x.DeviceId, x.RuleId });
+                    table.ForeignKey(
+                        name: "FK_TopicThreshholds_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TopicThreshholds_Rules_RuleId",
+                        column: x => x.RuleId,
+                        principalTable: "Rules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateIndex(
-                name: "IX_Apartments_UserId",
+                name: "IX_ApartmentNeighbours_NeighbourId",
+                table: "ApartmentNeighbours",
+                column: "NeighbourId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Apartments_BuldingId",
                 table: "Apartments",
+                column: "BuldingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Buildings_UserId",
+                table: "Buildings",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Modules_UnitId",
+                name: "IX_Devices_ModuleId",
+                table: "Devices",
+                column: "ModuleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Modules_ApartmentId",
                 table: "Modules",
-                column: "UnitId");
+                column: "ApartmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Modules_UserId",
@@ -203,9 +302,9 @@ namespace FireManagerServer.Migrations
                 column: "ModuleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Units_ApartmentId",
-                table: "Units",
-                column: "ApartmentId");
+                name: "IX_TopicThreshholds_RuleId",
+                table: "TopicThreshholds",
+                column: "RuleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleId",
@@ -216,16 +315,25 @@ namespace FireManagerServer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ApartmentNeighbours");
+
+            migrationBuilder.DropTable(
+                name: "TopicThreshholds");
+
+            migrationBuilder.DropTable(
+                name: "Devices");
+
+            migrationBuilder.DropTable(
                 name: "Rules");
 
             migrationBuilder.DropTable(
                 name: "Modules");
 
             migrationBuilder.DropTable(
-                name: "Units");
+                name: "Apartments");
 
             migrationBuilder.DropTable(
-                name: "Apartments");
+                name: "Buildings");
 
             migrationBuilder.DropTable(
                 name: "Users");

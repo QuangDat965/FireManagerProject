@@ -1,14 +1,18 @@
-﻿using FireManagerServer.Database.Entity;
+﻿using FireManagerServer.Controllers;
+using FireManagerServer.Database.Entity;
 using FireManagerServer.Model.Request;
 
 namespace FireManagerServer.Services.UnitServices
 {
     public interface IUnitService
     {
-        Task<List<Unit>> GetList(UnitFilter filter);
-        Task<List<Unit>> GetAll();
+        Task<List<Apartment>> GetList(UnitFilter filter);
+        Task<List<Apartment>> GetAll();
+        Task<List<Apartment>> GetNeighBour(string id);
         Task<bool> Add(UnitRequest request);
         Task<bool> Delete(string unitId);
         Task<bool> Update(UnitUpdateDto unit);
+        Task<bool> AddUpdateNeighBour(NeighBourDto unit);
+        Task<bool> UpdateNeighBour(NeighBourDto unit);
     }
 }

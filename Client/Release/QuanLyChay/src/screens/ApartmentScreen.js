@@ -36,7 +36,7 @@ export default function ApartmentScreen({ navigation }) {
 
     }
     const getApartment = async () => {
-        const dt = await postData('Apartment/getlist', {
+        const dt = await postData('Building/getlist', {
             "searchKey": searchKey,
             "orderBy": ordervalue
         });
@@ -47,7 +47,7 @@ export default function ApartmentScreen({ navigation }) {
     }
     const onPressAdd = async () => {
         // add apartment
-        const rs = await postData('Apartment/add', {
+        const rs = await postData('Building/add', {
             "name": name,
             "desc": desc
         });
@@ -60,14 +60,14 @@ export default function ApartmentScreen({ navigation }) {
     const handleChangeSearch = async (text) => {
         setSearchKey(text)
         if (text.length >= 1) {
-            const dt = await postData(`Apartment/getlist`, {
+            const dt = await postData(`Building/getlist`, {
                 "searchKey": text,
                 "orderBy": ordervalue
             });
             setData(dt);
         }
         if (text.length == 0) {
-            const dt = await postData(`Apartment/getlist`, {
+            const dt = await postData(`Building/getlist`, {
                 "searchKey": "",
                 "orderBy": ordervalue
 
@@ -76,7 +76,7 @@ export default function ApartmentScreen({ navigation }) {
         }
     }
     const handleSort = async (sort) => {
-        const dt = await postData('Apartment/getlist', {
+        const dt = await postData('Building/getlist', {
             "searchKey": searchKey,
             "orderBy": sort
         });
@@ -87,7 +87,7 @@ export default function ApartmentScreen({ navigation }) {
         setModaRepair(false)
     }
     const updateApartment = async () => {
-        const rs = await postData('Apartment/update', {
+        const rs = await postData('Building/update', {
             "id": apartment.id,
             "name": name,
             "desc": desc
@@ -114,7 +114,7 @@ export default function ApartmentScreen({ navigation }) {
        setAlert(true)
     }
     const onOkAlert = async ()=> {
-        const rs = await postData('Apartment/delete', {
+        const rs = await postData('Building/delete', {
             "id": idApartmentRemove
         })
         setAlert(false)

@@ -13,7 +13,7 @@ public class JwtService:IJwtService
       this.configuration = configuration;
     }
 
-    public string GenerateToken(Dictionary<string, string> claims, int expirationMinutes = 30)
+    public string GenerateToken(Dictionary<string, string> claims, int expirationMinutes = 1000)
     {
         var secretKey = configuration.GetValue<string>("ScretKey");
         // Tạo danh sách claims từ dữ liệu đầu vào
@@ -32,7 +32,7 @@ public class JwtService:IJwtService
         // Tạo token
         var token = new JwtSecurityToken(
             claims: identityClaims,
-            expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
+            expires: DateTime.UtcNow.AddDays(expirationMinutes),
             signingCredentials: creds
         );
 

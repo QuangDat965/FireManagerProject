@@ -1,4 +1,5 @@
 ﻿using FireManagerServer.Common;
+using FireManagerServer.Database.Entity;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FireManagerServer.Model.Request
@@ -25,13 +26,18 @@ namespace FireManagerServer.Model.Request
     }
     public class RuleAddDto
     {
+        public List<TopicThreshhold> TopicThreshholds { get; set; }
         public string Desc { get; set; }
         public bool isActive { get; set; }
-        public string NameCompare { get; set; }
-        public string Threshold { get; set; }
-        public string TopicWrite { get; set; }
-        public string Status { get; set; }
-        public string Port { get; set; }
-        public string ModuleId { get; set; }
+        public bool isFire { get; set; }
+        public TypeRule TypeRule { get; set; }
+    }
+    public class TopicThreshHoldDto
+    {
+        public string DeviceId { get; set; }
+        public string RuleId { get; set; }
+        public int? ThreshHold { get; set; }
+        public int? Value { get; set; }
+        public TypeCompare TypeCompare { get; set; }
     }
 }

@@ -28,7 +28,7 @@ export default function ModuleScreen({ navigation }) {
     }, [])
     const testFun = () => {
         const fetchdata = async () => {
-            const dt = await postData('Apartment/getlist',{
+            const dt = await postData('Building/getlist',{
                 "searchKey": ""
             });
             setApartment(dt);
@@ -36,13 +36,13 @@ export default function ModuleScreen({ navigation }) {
         fetchdata();
     }
     const initial = async () => {
-        const dt = await postData('Apartment/getlist',{
+        const dt = await postData('Building/getlist',{
             "searchKey": ""
         });
         setApartment(dt);
     }
     const fetchUnit = async (apartmentId) => {
-        const dt = await postData('Unit/getbyapartment', {
+        const dt = await postData('Apartment/getbyapartment', {
             "id": apartmentId
         });
         setUnit(dt);
@@ -125,17 +125,6 @@ export default function ModuleScreen({ navigation }) {
                     </View>
                 </View>
                 <ScrollView>
-                    <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                        <View style={{ width: '80%' }}>
-                            <TextInput
-                                label="Tim kiem"
-                                returnKeyType="next"
-                                value={searchKey.value}
-                                onChangeText={(text) => console.log('hi')}
-                                autoCapitalize="none"
-                            /></View>
-                    </View>
-                    <Button onPress={() => testFun()} title="test"></Button>
                     {/* picker */}
                     
                         <View style={{ marginLeft: 13, flexDirection: 'row', flexWrap: 'nowrap', width: '100%', height: 50, alignItems: 'center' }}>

@@ -20,7 +20,7 @@ const funcitions = [
   },
   {
     id: 3,
-    title: "Quản lý thiết bị",
+    title: "Quản lý module",
     icon: "microchip"
   },
   {
@@ -52,7 +52,7 @@ export default function Dashboard({ navigation }) {
   }, [])
   return (
     <BackgroundTop>
-      <HeaderTopD text={'Fire Manager'}></HeaderTopD>
+      <HeaderTopD text={'Quản lý cháy'}></HeaderTopD>
       <ScrollView style = {screen==1?{marginBottom:111}:{display:'none'}}>
         <View style={styles.profile}>
           <Image style={{ width: 60, height: 60, borderRadius: 50, marginRight: 10 }} source={require('../assets/logo2.jpg')}></Image>
@@ -85,7 +85,7 @@ export default function Dashboard({ navigation }) {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setSceen(2)} style={styles.fItem}>
             <Icon name="user" size={50} color={screen == 2 ? theme.colors.mainColor : "#ccc"} />
-            <Text>User</Text>
+            <Text>Người dùng</Text>
           </TouchableOpacity>
         </View>
       </View>

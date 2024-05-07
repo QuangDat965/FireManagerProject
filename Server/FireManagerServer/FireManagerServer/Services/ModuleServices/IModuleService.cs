@@ -7,6 +7,7 @@ namespace FireManagerServer.Services.ModuleServices
         Task<List<Module>> GetAll();
         Task<List<Module>> GetbyUserId(string userId);
         Task<List<Module>> GetbyUnitId(string unitId);
+        Task<Module> GetbyId(string id);
         Task<bool> AddToRoom(string unitId, string moduleId);
         Task<bool> Update(Module request);
     }

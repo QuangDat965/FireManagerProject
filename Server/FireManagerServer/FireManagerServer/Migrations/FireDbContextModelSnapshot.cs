@@ -24,6 +24,52 @@ namespace FireManagerServer.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("varchar(95)");
 
+                    b.Property<string>("BuldingId")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<DateTime?>("DateCreate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DateUpdate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Desc")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsFire")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuldingId");
+
+                    b.ToTable("Apartments");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.ApartmentNeighbour", b =>
+                {
+                    b.Property<string>("ApartmentId")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("NeighbourId")
+                        .HasColumnType("varchar(95)");
+
+                    b.HasKey("ApartmentId", "NeighbourId");
+
+                    b.HasIndex("NeighbourId");
+
+                    b.ToTable("ApartmentNeighbours");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.Building", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(95)");
+
                     b.Property<DateTime?>("DateCreate")
                         .HasColumnType("datetime(6)");
 
@@ -44,7 +90,7 @@ namespace FireManagerServer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Apartments");
+                    b.ToTable("Buildings");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.DeviceEntity", b =>
@@ -73,6 +119,10 @@ namespace FireManagerServer.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ModuleId");
@@ -83,6 +133,9 @@ namespace FireManagerServer.Migrations
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
                 {
                     b.Property<string>("Id")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("ApartmentId")
                         .HasColumnType("varchar(95)");
 
                     b.Property<DateTime?>("DateCreate")
@@ -101,15 +154,12 @@ namespace FireManagerServer.Migrations
                     b.Property<bool?>("Status")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("UnitId")
-                        .HasColumnType("varchar(95)");
-
                     b.Property<string>("UserId")
                         .HasColumnType("varchar(95)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UnitId");
+                    b.HasIndex("ApartmentId");
 
                     b.HasIndex("UserId");
 
@@ -148,27 +198,13 @@ namespace FireManagerServer.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(95)");
 
-                    b.Property<string>("NameCompare")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Port")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Threshold")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("TopicWrite")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<int>("TypeRule")
+                        .HasColumnType("int");
 
                     b.Property<bool>("isActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("isFireRule")
                         .HasColumnType("tinyint(1)");
 
                     b.HasKey("Id");
@@ -178,32 +214,28 @@ namespace FireManagerServer.Migrations
                     b.ToTable("Rules");
                 });
 
-            modelBuilder.Entity("FireManagerServer.Database.Entity.Unit", b =>
+            modelBuilder.Entity("FireManagerServer.Database.Entity.TopicThreshhold", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("DeviceId")
                         .HasColumnType("varchar(95)");
 
-                    b.Property<string>("ApartmentId")
+                    b.Property<string>("RuleId")
                         .HasColumnType("varchar(95)");
 
-                    b.Property<DateTime?>("DateCreate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<int?>("ThreshHold")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime?>("DateUpdate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<int>("TypeCompare")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Desc")
-                        .HasColumnType("longtext");
+                    b.Property<int?>("Value")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.HasKey("DeviceId", "RuleId");
 
-                    b.HasKey("Id");
+                    b.HasIndex("RuleId");
 
-                    b.HasIndex("ApartmentId");
-
-                    b.ToTable("Units");
+                    b.ToTable("TopicThreshholds");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.UserEntity", b =>
@@ -254,9 +286,39 @@ namespace FireManagerServer.Migrations
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.Apartment", b =>
                 {
-                    b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
+                    b.HasOne("FireManagerServer.Database.Entity.Building", "Building")
                         .WithMany("Apartments")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("BuldingId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Building");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.ApartmentNeighbour", b =>
+                {
+                    b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment1")
+                        .WithMany("ApartmentNeighbours")
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment2")
+                        .WithMany("ApartmentNeighbours2")
+                        .HasForeignKey("NeighbourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Apartment1");
+
+                    b.Navigation("Apartment2");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.Building", b =>
+                {
+                    b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
+                        .WithMany("Buildings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -264,7 +326,7 @@ namespace FireManagerServer.Migrations
             modelBuilder.Entity("FireManagerServer.Database.Entity.DeviceEntity", b =>
                 {
                     b.HasOne("FireManagerServer.Database.Entity.Module", "Module")
-                        .WithMany()
+                        .WithMany("Devices")
                         .HasForeignKey("ModuleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -274,15 +336,17 @@ namespace FireManagerServer.Migrations
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
                 {
-                    b.HasOne("FireManagerServer.Database.Entity.Unit", "Unit")
+                    b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment")
                         .WithMany("Modules")
-                        .HasForeignKey("UnitId");
+                        .HasForeignKey("ApartmentId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
                         .WithMany("Modules")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("Unit");
+                    b.Navigation("Apartment");
 
                     b.Navigation("User");
                 });
@@ -298,13 +362,23 @@ namespace FireManagerServer.Migrations
                     b.Navigation("Module");
                 });
 
-            modelBuilder.Entity("FireManagerServer.Database.Entity.Unit", b =>
+            modelBuilder.Entity("FireManagerServer.Database.Entity.TopicThreshhold", b =>
                 {
-                    b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment")
-                        .WithMany()
-                        .HasForeignKey("ApartmentId");
+                    b.HasOne("FireManagerServer.Database.Entity.DeviceEntity", "Device")
+                        .WithMany("TopicThreshholds")
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Apartment");
+                    b.HasOne("FireManagerServer.Database.Entity.RuleEntity", "Rule")
+                        .WithMany("TopicThreshholds")
+                        .HasForeignKey("RuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Device");
+
+                    b.Navigation("Rule");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.UserEntity", b =>
@@ -318,19 +392,43 @@ namespace FireManagerServer.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("FireManagerServer.Database.Entity.Apartment", b =>
+                {
+                    b.Navigation("ApartmentNeighbours");
+
+                    b.Navigation("ApartmentNeighbours2");
+
+                    b.Navigation("Modules");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.Building", b =>
+                {
+                    b.Navigation("Apartments");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.DeviceEntity", b =>
+                {
+                    b.Navigation("TopicThreshholds");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
+                {
+                    b.Navigation("Devices");
+                });
+
             modelBuilder.Entity("FireManagerServer.Database.Entity.Role", b =>
                 {
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("FireManagerServer.Database.Entity.Unit", b =>
+            modelBuilder.Entity("FireManagerServer.Database.Entity.RuleEntity", b =>
                 {
-                    b.Navigation("Modules");
+                    b.Navigation("TopicThreshholds");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.UserEntity", b =>
                 {
-                    b.Navigation("Apartments");
+                    b.Navigation("Buildings");
 
                     b.Navigation("Modules");
                 });

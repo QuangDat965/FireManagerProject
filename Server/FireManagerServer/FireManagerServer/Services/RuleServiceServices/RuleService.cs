@@ -16,19 +16,21 @@ namespace FireManagerServer.Services.RuleServiceServices
 
         public async Task<RuleEntity> Create(RuleAddDto rule)
         {
+            
             var ruleEntity = new RuleEntity()
             {
                 Id = Guid.NewGuid().ToString(),
-                NameCompare = rule.NameCompare,
-                Threshold = rule.Threshold,
-                TopicWrite = rule.TopicWrite,
                 Desc = rule.Desc,
                 isActive = rule.isActive,
-                ModuleId = rule.ModuleId,
-                Port = "0",
-                Status = rule.Status,
+                isFireRule = rule.isFire,
+                TypeRule = rule.TypeRule
+            };
+            foreach(var e in rule.TopicThreshholds)
+            {
+                e.RuleId = ruleEntity.Id;
             };
             dbContext.Add(ruleEntity);
+            dbContext.AddRange(rule.TopicThreshholds);
             await dbContext.SaveChangesAsync();
             return ruleEntity;
         }

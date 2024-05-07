@@ -55,64 +55,59 @@ export default function UnitDetailScreen(router) {
             console.log("Message content: " + message.payloadString);
             const topic = message.destinationName;
             const payload = message.payloadString;
-            const parts = topic.split('/')
-            var obj = {
-                id: topic,
-                payload: payload,
-                module: parts[1],
-                port: parts[2],
-                type: parts[3],
-                name: parts[4]
-            }
-            const datatemp = devices;
-            const findId = devices.findIndex(p => p.id == topic)
-            if (findId != -1) {
-                datatemp[findId].payload = payload;
-                setDataModule([...datatemp]);
-            }
-            devices.map(e => {
-                if (e.id == topic) {
-
-                }
+           
+            const listDevice = GetdataFromPayload(payload);
+            console.log(listDevice);
+            listDevice.forEach(fModule => {
+               
+                devices.forEach(fDb => {
+                    if(fModule.Name == fDb.topic) {
+                        console.log(fDb.payload );
+                        console.log(fModule.Value );
+                        fDb.payload = fModule.Value
+                    }
+                })
+                
             });
-            // var oldData = dataModule;
-            // console.log(oldData);
-            // if (oldData.length <= 0) {
-            //     oldData.push(obj)
-            //     setDataModule([...oldData])
-            // }
-            // else {
-            //     var index = oldData.findIndex(p => p.id === obj.id)
-            //     if (index != -1) {
-            //         oldData[index] = obj;
-            //         setDataModule([...oldData])
-            //     }
-            //     else {
-            //         oldData.push(obj)
-            //         setDataModule([...oldData])
-            //     }
-            // }
+            setDevice([...devices]);
         };
+    }
+    const GetdataFromPayload= (payload) => {
+        const dataString = payload;
+
+        // Sử dụng biểu thức chính quy để tách các đối tượng từ chuỗi
+        const regex = /{([^}]+)}/g;
+        const matches = [...dataString.matchAll(regex)];
+        
+        // Tạo mảng chứa các đối tượng từ các kết quả tìm kiếm
+        const dataArray = matches.map(match => {
+            const objectString = match[1];
+            const objectData = objectString.split(';').reduce((obj, pair) => {
+                const [key, value] = pair.split(':');
+                obj[key.trim()] = isNaN(value) ? value.trim() : parseFloat(value.trim());
+                return obj;
+            }, {});
+            return objectData;
+        });
+        return dataArray;
     }
     const getSystemId = async () => {
         return await getData('System/id');
     }
     const testFun = async () => {
         const fetchdata = async () => {
-            const dt = await getData('Apartment/getlist');
+            const dt = await getData('Building/getlist');
         }
         fetchdata();
         console.log(await getSystemId());
     }
-    const handleToggle = (e) => {
-        const service = new MqttService();
-        const succcess = async () => {
-            console.log('send toggle success');
-            const payload = e.payload == null || e.payload == 0 ? "1" : "0"
-            service.sendMessage(`${e.id}/Sub`, payload);
-        }
-        service.connect(succcess);
-
+    const handleToggle = async (e) => {
+    const payload = e.payload == null || e.payload == 0 ? "1" : "0"      
+        rs = await postData('Mqtt/send/device', {
+            "topic":e.topic,
+            "payload":payload,
+            "moduleId": e.moduleId
+        });      
     }
     return (
         <BackgroundTop>
@@ -190,7 +185,7 @@ export default function UnitDetailScreen(router) {
 
                                 <View style={{ flexDirection: 'row' }}>
                                     <Text style={{ fontWeight: '500' }}>Đơn vị: </Text>
-                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>Ampe</Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.unit}</Text>
                                 </View>
                             </View>
 

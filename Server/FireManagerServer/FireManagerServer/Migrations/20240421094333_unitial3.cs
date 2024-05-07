@@ -4,23 +4,23 @@
 
 namespace FireManagerServer.Migrations
 {
-    public partial class devicetablev3 : Migration
+    public partial class unitial3 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "Payload",
-                table: "Devices");
+            migrationBuilder.AddColumn<string>(
+                name: "Desc",
+                table: "Rules",
+                type: "longtext",
+                nullable: false)
+                .Annotation("MySql:CharSet", "utf8mb4");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Payload",
-                table: "Devices",
-                type: "longtext",
-                nullable: false)
-                .Annotation("MySql:CharSet", "utf8mb4");
+            migrationBuilder.DropColumn(
+                name: "Desc",
+                table: "Rules");
         }
     }
 }

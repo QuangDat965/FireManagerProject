@@ -16,7 +16,7 @@ namespace FireManagerServer.Services.ApartmentService
         public async Task<bool> Add(ApartmentRequest request)
         {
            
-            await dbContext.AddAsync(new Apartment()
+            await dbContext.AddAsync(new Building()
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = request.Name,
@@ -30,16 +30,16 @@ namespace FireManagerServer.Services.ApartmentService
 
         public async Task<bool> Delete(string id)
         {
-            var user = await dbContext.Apartments.FirstOrDefaultAsync(p=>p.Id == id);
+            var user = await dbContext.Buildings.FirstOrDefaultAsync(p=>p.Id == id);
              dbContext.Remove(user);
             dbContext.SaveChanges();
             return true;
         }
 
-        public async Task<List<Apartment>> Get(string userId, ApartmentFilter filter)
+        public async Task<List<Building>> Get(string userId, ApartmentFilter filter)
         {
-            var list = await(from data in dbContext.Apartments
-                             where data.UserId == userId
+            var list = await(from data in dbContext.Buildings
+                             where data.UserId== userId
                              select data).ToListAsync();
             if(!string.IsNullOrEmpty(filter.SearchKey))
             {
@@ -60,14 +60,14 @@ namespace FireManagerServer.Services.ApartmentService
             return list;
         }
 
-        public async Task<List<Apartment>> GetAll()
+        public async Task<List<Building>> GetAll()
         {
-            return await dbContext.Apartments.ToListAsync();
+            return await dbContext.Buildings.ToListAsync();
         }
 
         public async Task<bool> Update(ApartmentUpdateDto request)
         {
-            var rs = await dbContext.Apartments.FirstOrDefaultAsync(p=>p.Id == request.Id);
+            var rs = await dbContext.Buildings.FirstOrDefaultAsync(p=>p.Id == request.Id);
             if(rs==null)
             {
                 return false;

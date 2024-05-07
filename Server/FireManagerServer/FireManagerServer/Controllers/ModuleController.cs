@@ -36,6 +36,12 @@ namespace FireManagerServer.Controllers
 
             return await moduleService.GetAll();
         }
+        [HttpGet("{id}")]
+        public async Task<Module> GetbyId( string id)
+        {
+
+            return await moduleService.GetbyId(id);
+        }
         [HttpPost, Route("update")]
         public async Task<bool> Update(Module request)
         {

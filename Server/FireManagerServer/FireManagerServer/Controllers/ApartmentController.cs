@@ -1,55 +1,65 @@
-﻿using FireManagerServer.Common;
-using FireManagerServer.Database.Entity;
+﻿using FireManagerServer.Database.Entity;
 using FireManagerServer.Model.Request;
-using FireManagerServer.Model.Response;
-using FireManagerServer.Service.JwtService;
-using FireManagerServer.Services.ApartmentService;
-using FireManagerServer.Services.AuthenService;
+using FireManagerServer.Services.UnitServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FireManagerServer.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ApartmentController : ControllerBase
+    public class ApartmentController:ControllerBase
     {
-        private readonly IApartmentService apartmentService;
-        private readonly IJwtService jwtService;
+        private readonly IUnitService unitService;
 
-        public ApartmentController(IApartmentService apartmentService, IJwtService jwtService)
+        public ApartmentController(IUnitService unitService)
         {
-            this.apartmentService = apartmentService;
-            this.jwtService = jwtService;
+            this.unitService = unitService;
         }
-        [HttpPost("getlist")]
-        public async Task<List<Apartment>> GetList([FromBody] ApartmentFilter filter)
+        [HttpPost, Route("getbyapartment")]
+        public async Task<List<Apartment>> GetByApartment([FromBody] UnitFilter filter)
         {
-            var rs = CommomFuncition.GetTokenBear(HttpContext);
-            return await apartmentService.Get(jwtService.GetId(rs), filter);
+            return await unitService.GetList(filter);
         }
-        [HttpGet("getall")]
+        [HttpGet, Route("getall")]
         public async Task<List<Apartment>> GetAll()
         {
-            return await apartmentService.GetAll();
+            return await unitService.GetAll();
         }
-        [HttpPost("add")]
-        public async Task<bool> Add([FromBody] ApartmentRequest request)
-        {
-            var rs = CommomFuncition.GetTokenBear(HttpContext);
-            var id = jwtService.GetId(rs);
-            request.UserId = id;
-            return await apartmentService.Add(request);
-        }
-        [HttpPost("delete")]
+        [HttpPost, Route("delete")]
         public async Task<bool> Delete([FromBody] CommonRequest request)
         {
-            return await apartmentService.Delete(request.Id);
+            return await unitService.Delete(request.Id);
         }
-        [HttpPost("update")]
-        public async Task<bool> Update([FromBody] ApartmentUpdateDto request)
+        [HttpPost, Route("add")]
+        public async Task<bool> Add([FromBody] UnitRequest request)
         {
-            return await apartmentService.Update(request);
+            return await unitService.Add(request);
         }
+        [HttpPost, Route("update")]
+        public async Task<bool> Update([FromBody] UnitUpdateDto request)
+        {
+            return await unitService.Update(request);
+        }
+        [HttpPost, Route("neighbour")]
+        public async Task<bool> AddNeighBour([FromBody] NeighBourDto request)
+        {
+            return await unitService.AddUpdateNeighBour(request);
+        }
+        [HttpPut, Route("neighbour")]
+        public async Task<bool> UpdateNeighBour([FromBody] NeighBourDto request)
+        {
+            return await unitService.UpdateNeighBour(request);
+        }
+        [HttpGet("neighbour/{id}")]
+        public async Task<List<Apartment>> UpdateNeighBour(string id)
+        {
+            return await unitService.GetNeighBour(id);
+        }
+
     }
-   
+    public class NeighBourDto
+    {
+        public string CurrentApartmentId { get; set; }
+        public List<string> NeighboudIds { get; set; }
+    }
 }
