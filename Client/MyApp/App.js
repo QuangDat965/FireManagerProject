@@ -6,15 +6,9 @@ import { theme } from './src/core/theme'
 import {
   StartScreen,
   LoginScreen,
-  RegisterScreen,
-  ResetPasswordScreen,
   Dashboard,
-  UnitScreen,
-  ModuleScreen,
-  UnitDetailScreen,
-  AutoScreen,
+
 } from './src/screens'
-import ApartmentScreen from './src/screens/ApartmentScreen'
 
 const Stack = createStackNavigator()
 
@@ -30,17 +24,7 @@ export default function App() {
         >
           <Stack.Screen name="StartScreen" component={StartScreen} />
           <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="Dashboard" component={Dashboard} />
-          <Stack.Screen name="ApartmentScreen" component={ApartmentScreen} />
-          <Stack.Screen name="UnitScreen" component={UnitScreen} />
-          <Stack.Screen name="ModuleScreen" component={ModuleScreen} />
-          <Stack.Screen name="UnitDetailScreen" component={UnitDetailScreen} />
-          <Stack.Screen name="AutoScreen" component={AutoScreen} />
-          <Stack.Screen
-            name="ResetPasswordScreen"
-            component={ResetPasswordScreen}
-          />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

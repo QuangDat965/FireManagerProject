@@ -3,6 +3,7 @@ using System;
 using FireManagerServer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FireManagerServer.Migrations
 {
     [DbContext(typeof(FireDbContext))]
-    partial class FireDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240519164942_addmore")]
+    partial class addmore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

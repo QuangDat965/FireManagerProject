@@ -1,15 +1,7 @@
 import React, { useState ,useEffect} from 'react'
-import Background from '../components/Background'
-import BackgroundTop from '../components/BackgroundTop'
-import Logo from '../components/Logo'
-import Header from '../components/Header'
-import Paragraph from '../components/Paragraph'
-import { View, Text, Button, TouchableOpacity, SafeAreaView, StyleSheet, Image, ScrollView } from 'react-native'
-import HeaderTopD from '../components/HeaderTopD'
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { theme } from '../core/theme'
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import ButtonC from '../components/Button'
+
+import { View, Text, StyleSheet } from 'react-native'
+
 
 const funcitions = [
   {
@@ -36,65 +28,9 @@ const funcitions = [
 ]
 
 export default function Dashboard({ navigation }) {
-  const [screen, setSceen] = useState(1)
-  const [test, setTest] = useState('')
-  const handleSwtich = (id) => {
-    if (id == 1) {
-      navigation.navigate('ApartmentScreen');
-    }
-    else if(id ==2) {
-      navigation.navigate('UnitScreen');
-    }
-    else if(id ==3) {
-      navigation.navigate('ModuleScreen');
-    }
-    else if(id ==4) {
-      navigation.navigate('AutoScreen');
-    }
-  }
-  useEffect(() => {
-  setSceen(1)
-  }, [])
+  
   return (
-    <BackgroundTop>
-      <HeaderTopD text={'Fire Manager'}></HeaderTopD>
-      <ScrollView style = {screen==1?{marginBottom:111}:{display:'none'}}>
-        <View style={styles.profile}>
-          <Image style={{ width: 60, height: 60, borderRadius: 50, marginRight: 10 }} source={require('../assets/logo2.jpg')}></Image>
-          <Text style={{ fontWeight: '700' }}>Hubert</Text>
-        </View>
-        <View style={styles.content}>
-          {funcitions.map(e => {
-            return (<TouchableOpacity onPress={() => handleSwtich(e.id)} style={{ justifyContent: 'center', alignItems: 'center', marginBottom: 10 }}>
-              <View style={styles.item}>
-                <Icon name={e.icon} size={96} color={theme.colors.mainColor} />
-
-              </View>
-
-              <Text style={{ fontWeight: '700', justifyContent: 'center', alignItems: 'center', alignContent: 'center' }}>{e.title}</Text>
-            </TouchableOpacity>)
-          })}
-        </View>
-        <Text>{test}</Text>
-      </ScrollView>
-      <ScrollView style= {screen==2?{marginBottom:111}:{display:'none'}}>
-      <ButtonC mode="contained" onPress={()=> navigation.navigate('LoginScreen')}>
-        Đăng xuất
-      </ButtonC>
-      </ScrollView>
-      <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', padding: 5, position:'absolute', bottom:0 }}>
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={() => setSceen(1)} style={styles.fItem}>
-            <Icon name="home" size={50} color={screen == 1 ? theme.colors.mainColor : "#ccc"} />
-            <Text>Trang chủ</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setSceen(2)} style={styles.fItem}>
-            <Icon name="user" size={50} color={screen == 2 ? theme.colors.mainColor : "#ccc"} />
-            <Text>User</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </BackgroundTop>
+    <View style={{flex:1,backgroundColor:'red'}}><Text>Dashboard</Text></View>
   )
 }
 

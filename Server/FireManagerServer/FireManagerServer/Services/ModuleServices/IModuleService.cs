@@ -10,5 +10,9 @@ namespace FireManagerServer.Services.ModuleServices
         Task<Module> GetbyId(string id);
         Task<bool> AddToRoom(string unitId, string moduleId);
         Task<bool> Update(Module request);
+        Task<bool> Active(string id);
+        Task<bool> DeActive(string id);
+        Task<bool> OnFireRule(string id);
+        Task<bool> OffFireRule(string id);
     }
 }

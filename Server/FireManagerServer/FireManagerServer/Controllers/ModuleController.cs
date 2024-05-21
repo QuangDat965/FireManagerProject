@@ -7,7 +7,7 @@ namespace FireManagerServer.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ModuleController:ControllerBase
+    public class ModuleController : ControllerBase
     {
         private readonly IModuleService moduleService;
 
@@ -15,7 +15,17 @@ namespace FireManagerServer.Controllers
         {
             this.moduleService = moduleService;
         }
-        [HttpPost,Route("getall")]
+        [HttpPost, Route("active/{id}")]
+        public async Task<bool> Active(string id)
+        {
+            return await moduleService.Active(id);
+        }
+        [HttpPost, Route("deactive/{id}")]
+        public async Task<bool> Deactive(string id)
+        {
+            return await moduleService.DeActive(id);
+        }
+        [HttpPost, Route("getall")]
         public async Task<List<Module>> GetAll()
         {
             return await moduleService.GetAll();

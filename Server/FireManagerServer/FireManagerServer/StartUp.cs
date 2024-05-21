@@ -97,7 +97,7 @@ namespace FireManagerServer
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseCustomMiddleware();
+            //app.UseCustomMiddleware();
             app.UseCors("AllowAllHeaders");
             app.UseHttpsRedirection();
             //app.UseMiddleware<ApiResponseMiddleware> ();

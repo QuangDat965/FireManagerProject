@@ -13,6 +13,19 @@ namespace FireManagerServer.Services.ModuleServices
             this.dbContext = dbContext;
         }
 
+        public async Task<bool> Active(string id)
+        {
+            var entity = await dbContext.Modules.Where(p => p.Id == id).FirstOrDefaultAsync();
+            if (entity != null)
+            {
+                entity.Status = true;
+                dbContext.Update(entity);
+
+            }
+            await dbContext.SaveChangesAsync(); 
+            return true;
+        }
+
         public async Task<bool> AddToRoom(string unitId, string moduleId)
         {
             var module = await dbContext.Modules.FirstOrDefaultAsync(m => m.Id == moduleId );
@@ -22,6 +35,19 @@ namespace FireManagerServer.Services.ModuleServices
             }
             module.ApartmentId = unitId;
             dbContext.Update(module);
+            await dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeActive(string id)
+        {
+            var entity = await dbContext.Modules.Where(p => p.Id == id).FirstOrDefaultAsync();
+            if (entity != null)
+            {
+                entity.Status = false;
+                dbContext.Update(entity);
+
+            }
             await dbContext.SaveChangesAsync();
             return true;
         }
@@ -44,6 +70,18 @@ namespace FireManagerServer.Services.ModuleServices
         public async Task<List<Module>> GetbyUserId(string userId)
         {
             return await dbContext.Modules.Where(p=>p.UserId == userId).ToListAsync();
+        }
+
+        public async Task<bool> OffFireRule(string id)
+        {
+           
+            return true;
+        }
+
+        public async Task<bool> OnFireRule(string id)
+        {
+           
+            return true;
         }
 
         public async Task<bool> Update(Module request)

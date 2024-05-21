@@ -26,16 +26,16 @@ namespace FireManagerServer.Model.Request
     }
     public class RuleAddDto
     {
-        public List<TopicThreshhold> TopicThreshholds { get; set; }
+        public List<TopicThreshHoldDto> TopicThreshholds { get; set; }
         public string Desc { get; set; }
         public bool isActive { get; set; }
         public bool isFire { get; set; }
         public TypeRule TypeRule { get; set; }
+        public string ModuleId { get; set; }
     }
     public class TopicThreshHoldDto
     {
         public string DeviceId { get; set; }
-        public string RuleId { get; set; }
         public int? ThreshHold { get; set; }
         public int? Value { get; set; }
         public TypeCompare TypeCompare { get; set; }

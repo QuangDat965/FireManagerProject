@@ -7,13 +7,22 @@ import {
 } from 'react-native';
 import { theme } from '../core/theme'
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { getData, postData } from '../api/Api';
+import { deleteData, getData, postData, postDataNobody } from '../api/Api';
 import TextInput from '../components/TextInput';
 import ButtonC from '../components/Button';
 import { Picker } from '@react-native-picker/picker';
 import Icon2 from 'react-native-vector-icons/FontAwesome5';
+import RNPickerSelect from 'react-native-picker-select';
 import { shadow } from 'react-native-paper';
+import CheckMultiple from '../components/CheckMultipe';
+import CustomPicker from '../components/CustomPicker';
 
+const items = [
+    { id: '1', label: 'Football' },
+    { id: '2', label: 'Baseball' },
+    { id: '3', label: 'Hockey' },
+    { id: '4', label: 'Basketball' }
+];
 
 
 export default function AutoScreen({ navigation }) {
@@ -24,17 +33,17 @@ export default function AutoScreen({ navigation }) {
     const [units, setUnit] = useState([]);
     const [modules, setModule] = useState([]);
     const [screen, setScreen] = useState(0)
-    const [devices, setDevice] = useState(0)
+    const [devices, setDevice] = useState([])
     const [rules, setRule] = useState({})
     const [deviceRId, setDeviceRId] = useState("")
     const [deviceWId, setDeviceWId] = useState("")
     const [ruleDesc, setRuleDesc] = useState("")
     const [threshold, setThreshold] = useState("")
     const [onOF, setOnof] = useState("")
+    const [typeRule, setTypeRule] = useState(0)
 
     const [sensors, setSensor] = useState([])
-    const [control, setControl] = useState([])
-    const typeCompare = [{ key: 1, value: ">" }, { key: 2, value: "<" }, { key: 3, value: "=" }]; //1 bigger 2smaller 3 equars
+    const [controls, setControl] = useState([])
     useEffect(() => {
 
         initial()
@@ -92,24 +101,13 @@ export default function AutoScreen({ navigation }) {
         const rs = await getData('Rule/' + moduleId);
         setRule(rs);
     }
-    const onAddSensor = (e) => {
-        e["typeCompare"] = typeCompare[0].key;
-        e["threshold"] = 0;
-        if (sensors.length > 0) {
-            isExits = false;
-            sensors.map(c => {
-                if (c.id == e.id) {
-                    isExits = true;
-                }
-            })
-            if (!isExits) {
-                sensors.push(e);
-            }
-        }
-        else {
-            sensors.push(e)
-        }
-        setSensor([...sensors])
+    const onAddSensor = (adds) => {
+
+        adds.map(e => {
+            e["typeCompare"] = 0;
+            e["threshold"] = 0;
+        })
+        setSensor(adds)
     }
     const setCompareDisplay = (e) => {
         sensors.map(item => {
@@ -119,75 +117,164 @@ export default function AutoScreen({ navigation }) {
         })
         setSensor([...sensors])
     }
-    const handlePickComare = (e,compare) => {
-        sensors.map(item=> {
-            if(item.id==e.id) {
-                item.typeCompare = compare.key
-                item.isShow = "0"
+    const handlePickThrehold = (id, value) => {
+        sensors.map(item => {
+            if (item.topic == id) {
+                item.threshold = value
             }
         })
         setSensor([...sensors])
+    }
+    const handlePickThreholdDevice = (id, value) => {
+        devices.map(item => {
+            if (item.topic == id) {
+                item.threshold = value
+            }
+        })
+        setSensor([...devices])
+    }
+    const handleRemoveRuleSet = (e) => {
+        console.log(e);
+        const temps = sensors.filter(x => x.topic == e.topic);
+        console.log(temps);
+        setSensor(temps)
+    }
+    const OnPressSubmitRule = async () => {
+       
+        var list = [];
+
+        sensors.forEach(p => {
+            var obj = {}
+            obj.deviceId= p.id,
+            obj.threshHold= p.threshold,
+            obj.typeCompare= p.typeCompare
+            list.push(obj)
+        })
+        controls.forEach(p => {
+            var obj = {}
+            obj.deviceId= p.id,
+            obj.threshHold= p.threshold,
+            obj.typeCompare= p.typeCompare
+            list.push(obj);
+        })
+        const rs = await postData('Rule', {
+
+            "desc": ruleDesc,
+            "isActive": false,
+            "isFire": false,
+            "typeRule": typeRule,
+            "moduleId": moduleId,
+            "topicThreshholds": list
+        })
+        setScreen(0)
+        
+    }
+    const onActiveModule = async (e) => {
+        if(e.isActive==true) {
+           await postDataNobody('Rule/deactive/'+e.id);
+
+        }
+        else {
+           await postDataNobody('Rule/active/'+e.id);
+
+        }
+         await getListRule();
+    }
+    const onRemoveRule = async (id) => {
+        console.log(id);
+        const rs = await postDataNobody('Rule/'+id);
+        console.log(rs);
+        await getListRule();
     }
     return (
         <BackgroundTop>
 
             <View style={{ flex: 1, position: 'relative' }}>
                 {/* modal */}
-                <View style={screen == 1 ? { position: 'absolute', top: 0, width: "100%", height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 4, justifyContent: 'center', alignItems: 'center', padding: 10, } : { display: 'none' }}>
+                <View style={screen == 1 ? { position: 'absolute', flex: 1, top: 0, width: "100%", height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 4, justifyContent: 'center', alignItems: 'center', padding: 10, } : { display: 'none' }}>
                     <View style={{ width: '100%', backgroundColor: '#fff', padding: 10, borderRadius: 10 }}>
                         <TextInput
-                            label="Mô tả rule"
+                            label="Mô tả luật"
                             returnKeyType="next"
                             value={ruleDesc}
                             onChangeText={(text) => setRuleDesc(text)}
                             autoCapitalize="none"
                         />
-                        <ScrollView style={{height:300}}>
-                            <View style={{ flexDirection: 'row' }}>
-                                <Text style={{ fontWeight: '500' }}>Chọn sensor: </Text>
-                                <Icon2 name='plus-circle' size={20} ></Icon2>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text style={{ fontWeight: '500' }}>Kiểu luật: </Text>
+                            <CustomPicker
+                                items={[{ id: 0, label: "AND" }, { id: 1, label: "OR" }]}
+                                onSelectionChange={(e) => { setTypeRule(e.id) }}
+                                title="chọn kiểu"
+                            />
+                        </View>
+                        <ScrollView style={{ height: 300 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <CheckMultiple items={devices.filter(x => x.type == 0)}
+                                    onSelectionChange={(adds) => { onAddSensor(adds) }}
+                                    labelSet="topic"
+                                    title={"Chọn cảm biến"}
+                                />
                             </View >
-                            {/* modal pick sensor */}
-                            <View style={styles.shadow}>
-                                {devices != null && devices.length > 0 ? devices.map((e, i) => {
-                                    if (e.type == 0) {
-                                        return (<View>
-                                            <Text>{e.topic}</Text>
-                                            <Icon2 name='plus' size={20} onPress={() => {
-                                                onAddSensor(e)
-                                            }}></Icon2>
-                                        </View>)
-                                    }
 
-                                }) : <View></View>}
-                            </View>
+
                             {/* list sensor */}
                             <View style={styles.shadow}>
                                 {sensors != null && sensors.length > 0 ? sensors.map((e, i) => {
                                     e.isShow == null ? e["isShow"] = "0" : e.isShow
                                     e.threshold == null ? e["threshold"] = "0" : e.threshold
                                     if (e.type == 0) {
-                                        return (<View key={i} style={{ flexDirection: 'row', padding: 5, alignContent: 'center' }}>
-                                            <Text>{e.topic}</Text>
-                                            <TouchableOpacity onPress={() => {
-                                                setCompareDisplay(e)
-                                            }} style={{ position: 'relative', borderWidth: 1, borderColor: '#ccc', width: 20, height: 20, justifyContent: 'center', alignItems: 'center', marginLeft: 20 }}>
-                                                <Text>{typeCompare[e.typeCompare-1].value}</Text>
-                                                <View style={e.isShow == "1" ? { width: 40, borderWidth: 1, borderColor: '#ccc', justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 20, left: 0, backgroundColor: '#ccc', zIndex: 999 } : { display: 'none' }}>
-                                                    {typeCompare.map(compare => {
-                                                        return <TouchableOpacity onPress={() => {
-                                                           handlePickComare(e,compare)
-                                                        }} style={{ borderBottomWidth: 1, borderBottomColor: '#fff', width: '100%', justifyContent: 'center', alignItems: 'center' }}><Text style={{ borderBottomColor: '#ccc', }}>{compare.value}</Text></TouchableOpacity>
-                                                    })}
-                                                </View>
-                                            </TouchableOpacity>
+                                        return (<View key={i} style={{ position: 'relative', flexDirection: 'row', padding: 0, alignContent: 'center', marginBottom: 4 }}>
+                                            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                <Text style={{ justifyContent: 'center', alignItems: 'center' }}>{e.topic}</Text>
+                                            </View>
+                                            <CustomPicker items={[{ id: 0, label: '>' }, { id: 1, label: '<' }, { id: 2, label: '=' }]}
+                                                onSelectionChange={(select) => { e.typeCompare = select.id }}
+                                                title="chọn kiểu"
+                                            />
 
-                                            <Input style={{ borderWidth: 1, borderColor: '#ccc', marginLeft: 20, paddingHorizontal: 3, borderRadius: 4 }}
+
+                                            <Input style={{ borderWidth: 1, borderColor: '#ccc', marginLeft: 10, paddingHorizontal: 3, borderRadius: 4 }}
                                                 placeholder="ngưỡng"
                                                 value={e.threshold}
                                                 returnKeyType='next'
+                                                onChangeText={(value) => { handlePickThrehold(e.topic, value) }}
                                                 keyboardType="numeric" />
 
+                                        </View>)
+                                    }
+
+                                }) : <View></View>}
+                            </View>
+
+                            {/* device */}
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <CheckMultiple items={devices.filter(x => x.type === 1)}
+                                    onSelectionChange={(adds) => setControl(adds)}
+                                    labelSet="topic"
+                                    title="Chọn thiết bị điều khiển"
+                                />
+                            </View >
+                            {/* listdevice */}
+                            <View style={styles.shadow}>
+                                {controls != null && controls.length > 0 ? controls.map((e, i) => {
+                                    e.isShow == null ? e["isShow"] = "0" : e.isShow
+                                    e.threshold == null ? e["threshold"] = "0" : e.threshold
+                                    if (e.type == 1) {
+                                        return (<View key={i} style={{ position: 'relative', flexDirection: 'row', padding: 0, alignItems: 'center', marginBottom: 4 }}>
+                                            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                                <Text style={{ justifyContent: 'center', alignItems: 'center' }}>{e.topic}</Text>
+                                            </View>
+
+
+                                            <Text> =</Text>
+
+                                            <CustomPicker
+                                                title={e.threshold == 0 ? "OFF" : e.threshold == 1 ? "OFF" : "Chọn giá trị"}
+                                                items={[{ id: 0, label: "ON" }, { id: 1, label: "OFF" }]}
+                                                onSelectionChange={(item) => { e.threshold = item.id }}
+
+                                            />
 
                                         </View>)
                                     }
@@ -195,7 +282,7 @@ export default function AutoScreen({ navigation }) {
                                 }) : <View></View>}
                             </View>
                         </ScrollView>
-                        <ButtonC onPress={onPressAdd} mode="contained" >
+                        <ButtonC onPress={()=> OnPressSubmitRule()} mode="contained" >
                             Submit
                         </ButtonC>
                         <ButtonC onPress={onPressAddCancel} mode="contained" style={{ backgroundColor: '#ccc', color: '#000' }} >
@@ -271,12 +358,13 @@ export default function AutoScreen({ navigation }) {
                 <ScrollView>
                     {rules != null && rules.length > 0 ? rules.map((e, i) => {
                         return <View key={i} style={styles.item}>
-                            <Icon2 onPress={() => handleRepair(e)} name='tools' size={20} color='blue' style={{ position: 'absolute', right: 5, top: 5 }}></Icon2>
-                            <Icon2 onPress={() => handleRemove(e.id)} name='trash-alt' size={20} color='red' style={{ position: 'absolute', right: 35, top: 5 }}></Icon2>
+                            <Icon2 onPress={() => handleRepair(e)} name='eye' size={20} color='blue' style={{ position: 'absolute', right: 5, top: 5 }}></Icon2>
+                            <Icon2 onPress={() => {
+                                onRemoveRule(e.id)
+                            }} name='trash-alt' size={20} color='red' style={{ position: 'absolute', right: 35, top: 5 }}></Icon2>
 
-                            <View style={{ position: 'relative' }}><Icon color='#fff' name='rocket' size={30}></Icon></View>
                             <View style={styles.itemleft}>
-                                <Icon name="home" size={80} color={theme.colors.mainColor} />
+                                <Icon2 name="balance-scale" size={70} color={theme.colors.mainColor} />
                             </View>
                             <View style={styles.itemright}>
                                 <View style={{ flexDirection: 'row' }}>
@@ -285,22 +373,19 @@ export default function AutoScreen({ navigation }) {
                                 </View>
 
                                 <View style={{ flexDirection: 'row' }}>
-                                    <Text style={{ fontWeight: '500' }}>sensor: </Text>
-                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.nameCompare.split('/')[4]}</Text>
+                                    <Text style={{ fontWeight: '500' }}>Kiểu so sánh: </Text>
+                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.typeRule==0?"And":"Or"}</Text>
                                 </View>
-
-                                <View style={{ flexDirection: 'row' }}>
-                                    <Text style={{ fontWeight: '500' }}>Ngưỡng: </Text>
-                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.threshold}</Text>
+                                <View style={{ flexDirection: 'row', alignItems:'center' }}>
+                                    <Text style={{ fontWeight: '500' }}>Kích hoạt </Text>
+                                    <Icon2 onPress={()=>{
+                                        onActiveModule(e)
+                                    }} name={e.isActive==true?'toggle-on':'toggle-off'}
+                                    size={30}
+                                    />
+                                    
                                 </View>
-                                <View style={{ flexDirection: 'row' }}>
-                                    <Text style={{ fontWeight: '500' }}>Ngoại vi: </Text>
-                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.topicWrite.split('/')[4]}</Text>
-                                </View>
-                                <View style={{ flexDirection: 'row' }}>
-                                    <Text style={{ fontWeight: '500' }}>Trạng thái: </Text>
-                                    <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.status}</Text>
-                                </View>
+                             
                             </View>
 
                         </View>
@@ -374,5 +459,28 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         alignSelf: 'center',
     },
+    inputAndroid: {
+        fontSize: 16,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderWidth: 0.5,
+        borderColor: 'gray',
+        borderRadius: 8,
+        color: 'black',
+        paddingRight: 10, // Đảm bảo khoảng trống cho icon
+    },
 
 })
+const pickerSelectStyles = {
+    inputIOS: {
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderWidth: 1,
+        borderColor: 'gray',
+        borderRadius: 4,
+        color: 'black',
+        paddingRight: 30, // Đảm bảo khoảng trống cho icon
+    },
+
+};

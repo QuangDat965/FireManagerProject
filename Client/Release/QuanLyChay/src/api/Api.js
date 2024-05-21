@@ -62,6 +62,23 @@ const postData = async (end,postData) => {
     throw error;
   }
 };
+const postDataNobody = async (end) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/${end}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error posting data:', error);
+    throw error;
+  }
+};
 
 // Hàm gửi yêu cầu PUT
 const putData = async (id, putData) => {
@@ -84,12 +101,13 @@ const putData = async (id, putData) => {
 };
 
 // Hàm gửi yêu cầu DELETE
-const deleteData = async (id) => {
+const deleteData = async (end) => {
   try {
-    const response = await fetch(`${API_URL}/data/${id}`, {
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${API_URL}/${end}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${ACCESS_TOKEN}`
+        Authorization: `Bearer ${token}`
       }
     });
     const data = await response.json();
@@ -100,4 +118,4 @@ const deleteData = async (id) => {
   }
 };
 
-export { getData, postData, putData, deleteData, getDataNo };
+export { getData, postData, putData, deleteData, getDataNo, postDataNobody };

@@ -129,9 +129,9 @@ namespace FireManagerServer.BackgroundServices
             {
                 var _dbcontext = _dbContextFactory.CreateDbContext();
                 var sensors = packet.Payload.ToSensorModel();
-               foreach (var sensor in sensors)
+                foreach (var sensor in sensors)
                 {
-                   if(sensor.Type=="R")
+                    if (sensor.Type == "R")
                     {
                         _dbcontext.HistoryDatas.Add(new HistoryData()
                         {
@@ -146,7 +146,7 @@ namespace FireManagerServer.BackgroundServices
 
             }
             catch { }
-            
+
 
         }
     }

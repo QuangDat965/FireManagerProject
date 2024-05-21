@@ -1,48 +1,29 @@
 import React, { useState } from 'react'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TouchableOpacity, StyleSheet, View } from 'react-native'
 import { Text } from 'react-native-paper'
 import Background from '../components/Background'
 import Logo from '../components/Logo'
 import Header from '../components/Header'
-import ButtonC from '../components/Button'
 import TextInput from '../components/TextInput'
 import BackButton from '../components/BackButton'
 import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
-import { postData } from '../api/Api'
+import ButtonC from '../components/Button'
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
 
-  const onLoginPressed = async () => {
-    // const emailError = emailValidator(email.value)
-    // const passwordError = passwordValidator(password.value)
-    // if (emailError || passwordError) {
-    //   setEmail({ ...email, error: emailError })
-    //   setPassword({ ...password, error: passwordError })
-    //   return
-    // }
-   const result =  await postData('Authentication/login',
-      {
-        "email": email.value,
-        "password": password.value
-      });
-      console.log(result);
-      if(result!=null) {
-        if(result.data.role ==='USER')
-        {
-          await AsyncStorage.setItem('token', result.data.token)
-          console.log(result.data.token);
-          navigation.navigate('Dashboard')
-        }
-        else {
-
-        }
-      }
-      
+  const onLoginPressed =  () => {
+    const emailError = emailValidator(email.value)
+    const passwordError = passwordValidator(password.value)
+    if (emailError || passwordError) {
+      setEmail({ ...email, error: emailError })
+      setPassword({ ...password, error: passwordError })
+      return
+    }
+    navigation.navigate('Dashboard');
   }
 
   return (
@@ -83,7 +64,7 @@ export default function LoginScreen({ navigation }) {
       </ButtonC>
       <View style={styles.row}>
         <Text>Chưa có tài khoản? </Text>
-        <TouchableOpacity onPress={() => navigation.replace('RegisterScreen')}>
+        <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
           <Text style={styles.link}>Đăng kí</Text>
         </TouchableOpacity>
       </View>

@@ -19,6 +19,7 @@ namespace FireManagerServer.Database
         public DbSet<ApartmentNeighbour> ApartmentNeighbours { get; set; }
         public DbSet<TopicThreshhold> TopicThreshholds { get; set; }
         public DbSet<HistoryData> HistoryDatas { get; set; }
+        public DbSet<RuleEntity> RuleEntities { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RuleEntity>().HasKey(e => e.Id);

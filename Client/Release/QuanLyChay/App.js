@@ -15,6 +15,7 @@ import {
   AutoScreen,
 } from './src/screens'
 import ApartmentScreen from './src/screens/ApartmentScreen'
+import { NativeRouter, Routes, Route } from 'react-router-native';
 
 const Stack = createStackNavigator()
 
