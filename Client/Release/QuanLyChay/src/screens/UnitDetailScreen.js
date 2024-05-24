@@ -6,15 +6,19 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon2 from 'react-native-vector-icons/FontAwesome6'
 import { getData, getDataNo, postData } from '../api/Api';
 import MqttService from '../helpers/mqttService';
+import { useNavigate, useLocation } from 'react-router-native';
 
 
 
-export default function UnitDetailScreen(router) {
+
+export default function UnitDetailScreen() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const state = location.state;
+    const { unit } = state;
     const [dataModule, setDataModule] = useState([])
     const [screenControl, setScreenControl] = useState(0)
     const [devices, setDevice] = useState([])
-    const unit = router.route.params.unit;
-
     useEffect(() => {
 
         const initial = async () => {
@@ -114,7 +118,7 @@ export default function UnitDetailScreen(router) {
             {/* header */}
             <View style={styles.header}>
                 <View style={[styles.box, { width: '30%', }]}>
-                    <TouchableOpacity onPress={() => router.navigation.navigate('Dashboard')}>
+                    <TouchableOpacity onPress={() => navigate(-1)}>
                         <Icon name="angle-double-left" size={30} color="#fff" />
                     </TouchableOpacity>
                 </View>

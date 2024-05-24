@@ -12,8 +12,10 @@ import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { postData } from '../api/Api'
+import { useNavigate } from 'react-router-native';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
 
@@ -36,7 +38,7 @@ export default function LoginScreen({ navigation }) {
         {
           await AsyncStorage.setItem('token', result.data.token)
           console.log(result.data.token);
-          navigation.navigate('Dashboard')
+          navigate('/Dashboard')
         }
         else {
 
@@ -47,7 +49,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <Background>
-      <BackButton goBack={navigation.goBack} />
+      <BackButton goBack={()=>navigate(-1)} />
       <Logo />
       <Header>Đăng nhập</Header>
       <TextInput
@@ -66,6 +68,7 @@ export default function LoginScreen({ navigation }) {
         label="Mật khẩu"
         returnKeyType="done"
         value={password.value}
+        autoCapitalize="none"
         onChangeText={(text) => setPassword({ value: text, error: '' })}
         error={!!password.error}
         errorText={password.error}
@@ -73,7 +76,7 @@ export default function LoginScreen({ navigation }) {
       />
       <View style={styles.forgotPassword}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('ResetPasswordScreen')}
+          onPress={() => navigate('/ResetPasswordScreen')}
         >
           <Text style={styles.forgot}>Quên mật khẩu?</Text>
         </TouchableOpacity>
@@ -83,11 +86,11 @@ export default function LoginScreen({ navigation }) {
       </ButtonC>
       <View style={styles.row}>
         <Text>Chưa có tài khoản? </Text>
-        <TouchableOpacity onPress={() => navigation.replace('RegisterScreen')}>
+        <TouchableOpacity onPress={() => navigate('/RegisterScreen')}>
           <Text style={styles.link}>Đăng kí</Text>
         </TouchableOpacity>
       </View>
-      <BackButton goBack={navigation.goBack} />
+      <BackButton goBack={()=> {navigate(-1)}} />
     </Background>
   )
 }

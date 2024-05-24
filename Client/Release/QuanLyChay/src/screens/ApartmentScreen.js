@@ -11,10 +11,12 @@ import { getData, postData } from '../api/Api';
 import TextInput from '../components/TextInput';
 import ButtonC from '../components/Button';
 import CustomAlert from '../components/CustomAlert';
+import { useNavigate } from 'react-router-native';
 
 
 
-export default function ApartmentScreen({ navigation }) {
+export default function ApartmentScreen() {
+    const navigate = useNavigate();
     const [data, setData] = useState([])
     const [name, setName] = useState('')
     const [desc, setDesc] = useState('')
@@ -188,7 +190,7 @@ export default function ApartmentScreen({ navigation }) {
                 {/* header */}
                 <View style={styles.header}>
                     <View style={[styles.box, { width: '30%', }]}>
-                        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                        <TouchableOpacity onPress={() => navigate(-1)}>
                             <Icon name="angle-double-left" size={30} color="#fff" />
                         </TouchableOpacity>
                     </View>

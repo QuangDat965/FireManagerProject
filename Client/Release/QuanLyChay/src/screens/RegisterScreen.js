@@ -13,9 +13,11 @@ import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { postData } from '../api/Api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigate } from 'react-router-native';
 
+export default function RegisterScreen() {
+  const navigate = useNavigate();
 
-export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
@@ -38,21 +40,18 @@ export default function RegisterScreen({ navigation }) {
     })
     if(rs.code == 0) {
       await AsyncStorage.setItem('token', rs.data.token)
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Dashboard' }],
-      })
+      navigate('Dashboard')
     }
    
   }
 
   return (
     <Background>
-      <BackButton goBack={navigation.goBack} />
+      <BackButton goBack={()=>navigate(-1)} />
       <Logo />
-      <Header>Create Account</Header>
+      <Header>Tạo tài khoản</Header>
       <TextInput
-        label="Name"
+        label="Tên"
         returnKeyType="next"
         value={name.value}
         onChangeText={(text) => setName({ value: text, error: '' })}
@@ -72,7 +71,7 @@ export default function RegisterScreen({ navigation }) {
         keyboardType="email-address"
       />
       <TextInput
-        label="Password"
+        label="Mật khẩu"
         returnKeyType="done"
         value={password.value}
         onChangeText={(text) => setPassword({ value: text, error: '' })}
@@ -85,12 +84,12 @@ export default function RegisterScreen({ navigation }) {
         onPress={onSignUpPressed}
         style={{ marginTop: 24 }}
       >
-        Sign Up
+        Đăng kí
       </Button>
       <View style={styles.row}>
-        <Text>Already have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.replace('LoginScreen')}>
-          <Text style={styles.link}>Login</Text>
+        <Text>Bạn đã có tài khoản? </Text>
+        <TouchableOpacity onPress={() => {navigate('/login')}}>
+          <Text style={styles.link}>Đăng nhập</Text>
         </TouchableOpacity>
       </View>
     </Background>

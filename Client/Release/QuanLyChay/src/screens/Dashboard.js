@@ -5,6 +5,7 @@ import HeaderTopD from '../components/HeaderTopD'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { theme } from '../core/theme'
 import ButtonC from '../components/Button'
+import { useNavigate } from 'react-router-native';
 
 const funcitions = [
   {
@@ -30,21 +31,23 @@ const funcitions = [
   },
 ]
 
-export default function Dashboard({ navigation }) {
+export default function Dashboard() {
+  const navigate = useNavigate();
+
   const [screen, setSceen] = useState(1)
   const [test, setTest] = useState('')
   const handleSwtich = (id) => {
     if (id == 1) {
-      navigation.navigate('ApartmentScreen');
+      navigate('/ApartmentScreen');
     }
     else if(id ==2) {
-      navigation.navigate('UnitScreen');
+      navigate('/UnitScreen');
     }
     else if(id ==3) {
-      navigation.navigate('ModuleScreen');
+      navigate('/ModuleScreen');
     }
     else if(id ==4) {
-      navigation.navigate('AutoScreen');
+      navigate('/AutoScreen');
     }
   }
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function Dashboard({ navigation }) {
         <Text>{test}</Text>
       </ScrollView>
       <ScrollView style= {screen==2?{marginBottom:111}:{display:'none'}}>
-      <ButtonC mode="contained" onPress={()=> navigation.navigate('LoginScreen')}>
+      <ButtonC mode="contained" onPress={()=> navigate('/login')}>
         Đăng xuất
       </ButtonC>
       </ScrollView>

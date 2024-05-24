@@ -12,9 +12,8 @@ import TextInput from '../components/TextInput';
 import ButtonC from '../components/Button';
 import { Picker } from '@react-native-picker/picker';
 import Icon2 from 'react-native-vector-icons/FontAwesome5';
-import RNPickerSelect from 'react-native-picker-select';
-import { shadow } from 'react-native-paper';
 import CheckMultiple from '../components/CheckMultipe';
+import { useNavigate } from 'react-router-native';
 import CustomPicker from '../components/CustomPicker';
 
 const items = [
@@ -25,7 +24,9 @@ const items = [
 ];
 
 
-export default function AutoScreen({ navigation }) {
+export default function AutoScreen() {
+    const navigate = useNavigate();
+
     const [aparments, setApartment] = useState([]);
     const [aparmenId, setApartmentId] = useState('');
     const [unitId, setUnitId] = useState('');
@@ -293,7 +294,7 @@ export default function AutoScreen({ navigation }) {
                 {/* header */}
                 <View style={styles.header}>
                     <View style={[styles.box, { width: '30%', }]}>
-                        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                        <TouchableOpacity onPress={() => navigate(-1)}>
                             <Icon name="angle-double-left" size={30} color="#fff" />
                         </TouchableOpacity>
                     </View>

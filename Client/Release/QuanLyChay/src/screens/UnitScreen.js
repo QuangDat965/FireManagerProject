@@ -15,9 +15,12 @@ import ButtonC from '../components/Button';
 import { Picker } from '@react-native-picker/picker';
 import CustomAlert from '../components/CustomAlert';
 import { getData, postData, putData } from '../api/Api';
+import { useNavigate, useLocation } from 'react-router-native';
 
 
-export default function UnitScreen({ navigation }) {
+export default function UnitScreen() {
+    const navigate = useNavigate();
+
     const [data, setData] = useState([])
     const [name, setName] = useState('')
     const [desc, setDesc] = useState('')
@@ -285,7 +288,7 @@ export default function UnitScreen({ navigation }) {
                 {/* header */}
                 <View style={styles.header}>
                     <View style={[styles.box, { width: '30%', }]}>
-                        <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+                        <TouchableOpacity onPress={() => navigate(-1)}>
                             <Icon name="angle-double-left" size={30} color="#fff" />
                         </TouchableOpacity>
                     </View>
@@ -380,7 +383,7 @@ export default function UnitScreen({ navigation }) {
                                         <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.dateCreate}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row' }}>
-                                        <Text onPress={() => navigation.navigate('UnitDetailScreen', { unit: e })} style={{ fontWeight: '500', color: 'blue', fontStyle: 'italic', textDecorationLine: 'underline' }}>Xem thông số</Text>
+                                        <Text onPress={() => navigate('/UnitDetailScreen', { state:{unit:e} })} style={{ fontWeight: '500', color: 'blue', fontStyle: 'italic', textDecorationLine: 'underline' }}>Xem thông số</Text>
 
                                     </View>
                                 </View>

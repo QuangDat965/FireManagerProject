@@ -4,8 +4,10 @@ import Logo from '../components/Logo'
 import Header from '../components/Header'
 import Button from '../components/Button'
 import Paragraph from '../components/Paragraph'
+import { useNavigate } from 'react-router-native';
 
-export default function StartScreen({ navigation }) {
+export default function StartScreen() {
+  const navigate = useNavigate();
   return (
     <Background>
       <Logo />
@@ -15,21 +17,15 @@ export default function StartScreen({ navigation }) {
       </Paragraph>
       <Button
         mode="contained"
-        onPress={() => navigation.navigate('LoginScreen')}
+        onPress={() => navigate('Login')}
       >
         Đăng Nhập
       </Button>
       <Button
         mode="outlined"
-        onPress={() => navigation.navigate('RegisterScreen')}
+        onPress={() => navigate('RegisterScreen')}
       >
         Đăng Kí
-      </Button>
-      <Button
-        mode="outlined"
-        onPress={() => {throw new Error('Hello, again, Sentry!'); }}
-      >
-        Press me
       </Button>
     </Background>
   )

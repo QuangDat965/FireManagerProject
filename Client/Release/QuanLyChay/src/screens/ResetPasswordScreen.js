@@ -7,7 +7,7 @@ import TextInput from '../components/TextInput'
 import Button from '../components/Button'
 import { emailValidator } from '../helpers/emailValidator'
 
-export default function ResetPasswordScreen({ navigation }) {
+export default function ResetPasswordScreen() {
   const [email, setEmail] = useState({ value: '', error: '' })
 
   const sendResetPasswordEmail = () => {
@@ -16,7 +16,7 @@ export default function ResetPasswordScreen({ navigation }) {
       setEmail({ ...email, error: emailError })
       return
     }
-    navigation.navigate('LoginScreen')
+    navigate('login')
   }
 
   return (
