@@ -16,6 +16,7 @@ namespace FireManagerServer.Model.RuleModel
     public class TopicThreshholdDisplayDto
     {
         public string? DeviceId { get; set; }
+        public DeviceType DeviceType { get; set; }
         public string? RuleId { get; set; }
         public int? ThreshHold { get; set; }
         public int? Value { get; set; }

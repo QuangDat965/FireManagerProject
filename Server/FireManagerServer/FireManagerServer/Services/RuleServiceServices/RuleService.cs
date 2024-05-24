@@ -87,6 +87,7 @@ namespace FireManagerServer.Services.RuleServiceServices
         public async Task<List<RuleDisplayDto>> GetAll()
         {
             var entities = await dbContext.Rules.Include(x => x.TopicThreshholds).ToListAsync();
+            
             var rs = new List<RuleDisplayDto>();
 
             foreach (var entity in entities)
@@ -99,13 +100,20 @@ namespace FireManagerServer.Services.RuleServiceServices
                 display.Desc = entity.Desc;
                 display.TypeRule = entity.TypeRule;
                 display.TopicThreshholds = new();
+                var deviceTypeMapings = await dbContext.Devices.Where(p => entity.TopicThreshholds.Select(x => x.DeviceId).Contains(p.Id)).Select(p => new
+                {
+                    Id = p.Id,
+                    Type = p.Type
+                }).ToListAsync();
+                var dicmaping = deviceTypeMapings.ToDictionary(x => x.Id, x => x.Type);
                 var topicthresholds = entity.TopicThreshholds.Select(x => new TopicThreshholdDisplayDto()
                 {
                     DeviceId = x.DeviceId,
                     RuleId = x.RuleId,
                     ThreshHold = x.ThreshHold,
                     TypeCompare = x.TypeCompare,
-                    Value = x.Value
+                    Value = x.Value,
+                    DeviceType = dicmaping[x.DeviceId]
                 }).ToList();
                 display.TopicThreshholds.AddRange(topicthresholds);
                 rs.Add(display);
