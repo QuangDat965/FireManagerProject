@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FireManagerServer.Services.UnitServices
 {
-    public class UnitService : IUnitService
+    public class ApartmentService : IApartmentService
     {
         private readonly FireDbContext dbContext;
 
-        public UnitService(FireDbContext dbContext)
+        public ApartmentService(FireDbContext dbContext)
         {
             this.dbContext = dbContext;
         }
@@ -70,6 +70,11 @@ namespace FireManagerServer.Services.UnitServices
         public async Task<List<Apartment>> GetAll()
         {
             return await dbContext.Apartments.ToListAsync();
+        }
+
+        public async Task<Apartment> GetById(string id)
+        {
+            return await dbContext.Apartments.FirstOrDefaultAsync(x=>x.Id == id);
         }
 
         public async Task<List<Apartment>> GetList(UnitFilter filter)

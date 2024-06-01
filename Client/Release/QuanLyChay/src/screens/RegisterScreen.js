@@ -23,15 +23,15 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState({ value: '', error: '' })
 
   const onSignUpPressed = async () => {
-    // const nameError = nameValidator(name.value)
-    // const emailError = emailValidator(email.value)
-    // const passwordError = passwordValidator(password.value)
-    // if (emailError || passwordError || nameError) {
-    //   setName({ ...name, error: nameError })
-    //   setEmail({ ...email, error: emailError })
-    //   setPassword({ ...password, error: passwordError })
-    //   return
-    // }
+    const nameError = nameValidator(name.value)
+    const emailError = emailValidator(email.value)
+    const passwordError = passwordValidator(password.value)
+    if (emailError || passwordError || nameError) {
+      setName({ ...name, error: nameError })
+      setEmail({ ...email, error: emailError })
+      setPassword({ ...password, error: passwordError })
+      return
+    }
     const rs =await postData('Authentication/register', {
       "email": email.value,
       "password": password.value,
@@ -40,7 +40,7 @@ export default function RegisterScreen() {
     })
     if(rs.code == 0) {
       await AsyncStorage.setItem('token', rs.data.token)
-      navigate('Dashboard')
+      navigate('/Dashboard')
     }
    
   }

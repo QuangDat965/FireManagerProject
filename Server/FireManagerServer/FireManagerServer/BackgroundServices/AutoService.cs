@@ -16,38 +16,42 @@ using FireManagerServer.Database.Entity;
 using FireManagerServer.Model.RuleModel;
 using System.Text;
 using System.Net.Sockets;
+using FireManagerServer.Services.UnitServices;
+using System.Reflection;
 
 namespace FireManagerServer.BackgroundServices
 {
     public class AutoService : BackgroundService
     {
         private readonly IConfiguration _configuration;
-        private readonly ScopedServiceFactory<IRuleService> _ruleService;
-        private readonly MqttClient _mqttClient = new MqttClient("broker.emqx.io");
+        private readonly MqttClient _mqttClient;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public AutoService(ScopedServiceFactory<IRuleService> ruleService,IConfiguration configuration, IServiceScopeFactory scopeFactory)
+        public AutoService(IConfiguration configuration, IServiceScopeFactory scopeFactory)
         {
             _configuration = configuration;
-            _ruleService = ruleService;
             _scopeFactory = scopeFactory;
+            _mqttClient = new MqttClient(configuration.GetValue<string>("BrokerHost"));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _mqttClient.MqttMsgPublishReceived += ProcessEventAsync;
+            _mqttClient.MqttMsgPublishReceived += async (sender, e) =>
+            {
+                await ProcessEventAsync(sender, e);
+            };
             string[] topic = new string[] { _configuration.GetValue<string>("SystemId") + "/#" };
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                   
+
                     if (!_mqttClient.IsConnected)
                     {
                         _mqttClient.Connect(Guid.NewGuid().ToString());
                         _mqttClient.Subscribe(topic, new byte[] { 0 });
                         Console.WriteLine("Connected Mqtt");
-                    }    
+                    }
 
                 }
                 catch (Exception ex)
@@ -58,114 +62,186 @@ namespace FireManagerServer.BackgroundServices
                 await Task.Delay(TimeSpan.FromMilliseconds(1000), stoppingToken);
             }
         }
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        private async void ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
+        private async Task ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
-            //var db = _dbContextFactory.CreateDbContext();
-            // var aaa = db.Users.ToList();
-            //var db2 = _apartmentService.CreateScopedService();
-            //var rs = db2.GetAll();
-
-            //flow 1. get data from rule service
-            // 2. get typeRule, dataChecks , dataImplements,
-            // 3. map to model compare
-            var message = new MessageRawModel()
-            {
-                Topic = e.Topic,
-                Payload = Encoding.UTF8.GetString(e.Message)
-            };
-            
-            var arrgs = message.Topic.Split("/");
-            var moduleId = arrgs[1];
-            var moduleName = arrgs[2];
-            var sub = "";
+            await _semaphore.WaitAsync();
             try
             {
-                sub = arrgs[3];
+                var message = new MessageRawModel()
+                {
+                    Topic = e.Topic,
+                    Payload = Encoding.UTF8.GetString(e.Message)
+                };
+
+                var arrgs = message.Topic.Split("/");
+                var moduleId = arrgs[1];
+                var moduleName = arrgs[2];
+                var sub = "";
+                try
+                {
+                    sub = arrgs[3];
+                }
+                catch { };
+                if (string.IsNullOrEmpty(sub))
+                {
+                    var rules = new List<RuleDisplayDto>();
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
+                        var results = await ruleService.GetByModuleId(moduleId);
+                        rules = results.Where(x => x.isActive == true).ToList();
+                    }
+                    Console.WriteLine("Start HandleRuleRire");
+                    await HandleRuleFire(rules, message, moduleId, moduleName, true);
+                    Console.WriteLine("End HandleRuleRire");
+                }
             }
-            catch { };
-            if(string.IsNullOrEmpty(sub))
+            catch { }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+
+        private async Task HandleRuleFire(List<RuleDisplayDto> rules, MessageRawModel message, string moduleId, string moduleName, bool notify)
+        {
+            foreach (var rule in rules)
             {
 
-                var rules = new List<RuleDisplayDto>();
-                using (var scope = _scopeFactory.CreateScope())
+                var deviceSensors = message.Payload.ToSensorModel();
+                var sensorDbs = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.R).ToList();
+                Console.WriteLine("sensor:" + sensorDbs.Count);
+                var sensorDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Name, x => x.Value);
+                var implDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Name, x => x.Name);
+                if (rule.TypeRule == Common.TypeRule.And)
                 {
-                    var ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
-                    var results = await ruleService.GetAll();
-                    rules = results.Where(x => x.isActive == true ).ToList();
+                    Console.WriteLine("Start Check Rule condition");
+
+                    var results = new List<bool>();
+                    foreach (var x in sensorDbs)
+                    {
+
+                        if (x.TypeCompare == Common.TypeCompare.Bigger)
+                        {
+                            string value = sensorDeviceCheckmapping[x.DeviceId];
+                            double raw = double.Parse(value);
+                            var a = (int)Math.Round(raw);
+           
+                            bool result = x.ThreshHold < (int)Math.Round(raw);
+                            Console.WriteLine("Device:" + a);
+                            Console.WriteLine("Db:" + x.ThreshHold);
+                            results.Add(result);
+                        }
+                        else if (x.TypeCompare == Common.TypeCompare.Smaller)
+                        {
+                            string value = sensorDeviceCheckmapping[x.DeviceId];
+                            double raw = double.Parse(value);
+                            bool result = x.ThreshHold > (int)Math.Round(raw);
+                            results.Add(result);
+                        }
+                    }
+                    Console.WriteLine("Rule Status: "+ results.Contains(false));
+                    if (results.Contains(false))
+                    {
+                        continue;
+                    }
+                   
+                    var deviceImplements = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.W).ToList();
+                    Console.WriteLine($"Device Type W: {deviceImplements.Count}");
+
+                    foreach (var deviceImplement in deviceImplements)
+                    {
+                        var systemId = _configuration.GetValue<string>("SystemId");
+                        var topic = $"{systemId}/{moduleId}/{moduleName}/sub/{implDeviceCheckmapping[deviceImplement.DeviceId]}";
+                        _mqttClient.Publish(topic, Encoding.UTF8.GetBytes(deviceImplement.ThreshHold.ToString()));
+                        if (notify)
+                        {
+                            Console.WriteLine("Start Notify");
+                            await NotifyNeightBour(moduleId, message, moduleId, moduleName);
+                            Console.WriteLine("End Notify");
+
+
+                        }
+                    }
+
+
 
                 }
-                
-
-                foreach (var rule in rules)
+                else if (rule.TypeRule == Common.TypeRule.Or)
                 {
-                    var deviceSensors = message.Payload.ToSensorModel();
-                    var sensorDbs = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.R).ToList();
-                    var sensorDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Name, x => x.Value);
-                    var implDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Name, x => x.Name);
-
-                    if (rule.TypeRule == Common.TypeRule.And)
+                    var results = new List<bool>();
+                    sensorDbs.ForEach(x =>
                     {
-                        var results = new List<bool>();
-                        sensorDbs.ForEach(x =>
-                        {
 
-                            if (x.TypeCompare == Common.TypeCompare.Bigger)
-                            {
-                                bool result = x.ThreshHold > int.Parse(sensorDeviceCheckmapping[x.DeviceId]);
-                                results.Add(result);
-                            }
-                            else if (x.TypeCompare == Common.TypeCompare.Smaller)
-                            {
-                                bool result = x.ThreshHold < int.Parse(sensorDeviceCheckmapping[x.DeviceId]);
-                                results.Add(result);
-                            }
-                        });
-                        if(results.Contains(false))
+                        if (x.TypeCompare == Common.TypeCompare.Bigger)
                         {
-                            continue;
+                            string value = sensorDeviceCheckmapping[x.DeviceId];
+                            double raw = double.Parse(value);
+                            bool result = x.ThreshHold < (int)Math.Round(raw);
+                            results.Add(result);
                         }
+                        else if (x.TypeCompare == Common.TypeCompare.Smaller)
+                        {
+                            string value = sensorDeviceCheckmapping[x.DeviceId];
+                            double raw = double.Parse(value);
+                            bool result = x.ThreshHold > (int)Math.Round(raw);
+                            results.Add(result);
+                        }
+                    });
+                    if (results.Contains(true))
+                    {
                         var deviceImplements = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.W).ToList();
-                        foreach(var deviceImplement in deviceImplements)
+                        foreach (var deviceImplement in deviceImplements)
                         {
                             var systemId = _configuration.GetValue<string>("SystemId");
                             var topic = $"{systemId}/{moduleId}/{moduleName}/sub/{implDeviceCheckmapping[deviceImplement.DeviceId]}";
                             _mqttClient.Publish(topic, Encoding.UTF8.GetBytes(deviceImplement.ThreshHold.ToString()));
-                        }
+                            if (notify)
+                            {
+                                await NotifyNeightBour(moduleId, message, moduleId, moduleName);
 
-                    }
-                    else if(rule.TypeRule == Common.TypeRule.Or)
-                    {
-                        var results = new List<bool>();
-                        sensorDbs.ForEach(x =>
-                        {
-
-                            if (x.TypeCompare == Common.TypeCompare.Bigger)
-                            {
-                                bool result = x.ThreshHold > int.Parse(sensorDeviceCheckmapping[x.DeviceId]);
-                                results.Add(result);
-                            }
-                            else if (x.TypeCompare == Common.TypeCompare.Smaller)
-                            {
-                                bool result = x.ThreshHold < int.Parse(sensorDeviceCheckmapping[x.DeviceId]);
-                                results.Add(result);
-                            }
-                        });
-                        if (results.Contains(true))
-                        {
-                            var deviceImplements = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.W).ToList();
-                            foreach (var deviceImplement in deviceImplements)
-                            {
-                                var systemId = _configuration.GetValue<string>("SystemId");
-                                var topic = $"{systemId}/{moduleId}/{moduleName}/sub/{implDeviceCheckmapping[deviceImplement.DeviceId]}";
-                                _mqttClient.Publish(topic, Encoding.UTF8.GetBytes(deviceImplement.ThreshHold.ToString()));
                             }
                         }
                     }
                 }
             }
-            
-            
+
+        }
+
+        private async Task NotifyNeightBour(string moduleId, MessageRawModel message, string moduleIdDevice, string moduleName)
+        {
+            try
+            {
+                var scope = _scopeFactory.CreateScope();
+                var _moduleService = scope.ServiceProvider.GetService<IModuleService>();
+                var _apartmentService = scope.ServiceProvider.GetService<IApartmentService>();
+                var _ruleService = scope.ServiceProvider.GetService<IRuleService>();
+
+                var module = await _moduleService.GetbyId(moduleId);
+                var neightbours = await _apartmentService.GetNeighBour(module.ApartmentId);
+                foreach (var neighbour in neightbours)
+                {
+                    var modules = await _moduleService.GetbyUnitId(neighbour.Id);
+                    if (modules?.Count > 0)
+                    {
+                        foreach (var moduleNeighb in modules)
+                        {
+                            if (moduleNeighb != null)
+                            {
+                                var rules = await _ruleService.GetByModuleId(moduleNeighb.Id);
+                                rules = rules.Where(x => x.isFireRule == true).ToList();
+                                await HandleRuleFire(rules, message, moduleId, moduleName, false);
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch { };
+
         }
     }
 }

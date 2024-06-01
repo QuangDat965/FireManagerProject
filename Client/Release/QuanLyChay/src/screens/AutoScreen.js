@@ -259,8 +259,7 @@ export default function AutoScreen() {
                             {/* listdevice */}
                             <View style={styles.shadow}>
                                 {controls != null && controls.length > 0 ? controls.map((e, i) => {
-                                    e.isShow == null ? e["isShow"] = "0" : e.isShow
-                                    e.threshold == null ? e["threshold"] = "0" : e.threshold
+                                    e.threshold == null ? e.threshold = 0 : e.threshold
                                     if (e.type == 1) {
                                         return (<View key={i} style={{ position: 'relative', flexDirection: 'row', padding: 0, alignItems: 'center', marginBottom: 4 }}>
                                             <View style={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -272,7 +271,7 @@ export default function AutoScreen() {
 
                                             <CustomPicker
                                                 title={e.threshold == 0 ? "OFF" : e.threshold == 1 ? "OFF" : "Chọn giá trị"}
-                                                items={[{ id: 0, label: "ON" }, { id: 1, label: "OFF" }]}
+                                                items={[{ id: 0, label: "OFF" }, { id: 1, label: "ON" }]}
                                                 onSelectionChange={(item) => { e.threshold = item.id }}
 
                                             />

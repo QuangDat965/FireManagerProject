@@ -137,13 +137,16 @@ namespace FireManagerServer.Services.RuleServiceServices
                 display.Desc = entity.Desc;
                 display.TypeRule = entity.TypeRule;
                 display.TopicThreshholds = new();
+                var devices = await dbContext.Devices.Where(x => entity.TopicThreshholds.Select(y => y.DeviceId).Contains(x.Id)).ToListAsync();
+                var deMaping = devices.ToDictionary(x=>x.Id, x=>x.Type);
                 var topicthresholds = entity.TopicThreshholds.Select(x => new TopicThreshholdDisplayDto()
                 {
                     DeviceId = x.DeviceId,
                     RuleId = x.RuleId,
                     ThreshHold = x.ThreshHold,
                     TypeCompare = x.TypeCompare,
-                    Value = x.Value
+                    Value = x.Value,
+                    DeviceType = deMaping[x.DeviceId]
                 }).ToList();
                 display.TopicThreshholds.AddRange(topicthresholds);
                 rs.Add(display);

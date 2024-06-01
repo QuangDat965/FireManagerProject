@@ -13,10 +13,10 @@ namespace FireManagerServer.Controllers
     [Route("[controller]")]
     public class BuildingController : ControllerBase
     {
-        private readonly IApartmentService apartmentService;
+        private readonly IBuildingService apartmentService;
         private readonly IJwtService jwtService;
 
-        public BuildingController(IApartmentService apartmentService, IJwtService jwtService)
+        public BuildingController(IBuildingService apartmentService, IJwtService jwtService)
         {
             this.apartmentService = apartmentService;
             this.jwtService = jwtService;

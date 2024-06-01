@@ -23,8 +23,8 @@ namespace FireManagerServer
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IAuthenService, AuthenService>();
             builder.Services.AddScoped<IRoleService, RoleService>();
+            builder.Services.AddScoped<IBuildingService, BuildingService>();
             builder.Services.AddScoped<IApartmentService, ApartmentService>();
-            builder.Services.AddScoped<IUnitService, UnitService>();
             builder.Services.AddScoped<IModuleService, ModuleService>();
             builder.Services.AddScoped<IRuleService, RuleService>();
             builder.Services.AddScoped<IDeviceService, DeviceService>();

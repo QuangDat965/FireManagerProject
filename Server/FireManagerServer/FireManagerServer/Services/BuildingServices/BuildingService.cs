@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FireManagerServer.Services.ApartmentService
 {
-    public class ApartmentService : IApartmentService
+    public class BuildingService : IBuildingService
     {
         private readonly FireDbContext dbContext;
 
-        public ApartmentService(FireDbContext dbContext)
+        public BuildingService(FireDbContext dbContext)
         {
             this.dbContext = dbContext;
         }
@@ -63,6 +63,11 @@ namespace FireManagerServer.Services.ApartmentService
         public async Task<List<Building>> GetAll()
         {
             return await dbContext.Buildings.ToListAsync();
+        }
+
+        public async Task<Building> GetById(string apartmentId)
+        {
+            return await dbContext.Buildings.FirstOrDefaultAsync(x=>x.Id == apartmentId);
         }
 
         public async Task<bool> Update(ApartmentUpdateDto request)
