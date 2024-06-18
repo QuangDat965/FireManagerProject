@@ -19,23 +19,25 @@ export default function RegisterScreen() {
   const navigate = useNavigate();
 
   const [name, setName] = useState({ value: '', error: '' })
+  const [phone, setPhone] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
 
   const onSignUpPressed = async () => {
-    const nameError = nameValidator(name.value)
-    const emailError = emailValidator(email.value)
-    const passwordError = passwordValidator(password.value)
-    if (emailError || passwordError || nameError) {
-      setName({ ...name, error: nameError })
-      setEmail({ ...email, error: emailError })
-      setPassword({ ...password, error: passwordError })
-      return
-    }
+    // const nameError = nameValidator(name.value)
+    // const emailError = emailValidator(email.value)
+    // const passwordError = passwordValidator(password.value)
+    // if (emailError || passwordError || nameError) {
+    //   setName({ ...name, error: nameError })
+    //   setEmail({ ...email, error: emailError })
+    //   setPassword({ ...password, error: passwordError })
+    //   return
+    // }
     const rs =await postData('Authentication/register', {
       "email": email.value,
       "password": password.value,
-      "fullName": name.value
+      "fullName": name.value,
+      "numberPhone":phone.value
  
     })
     if(rs.code == 0) {
@@ -59,6 +61,14 @@ export default function RegisterScreen() {
         errorText={name.error}
       />
       <TextInput
+        label="Số điện thoại"
+        returnKeyType="next"
+        value={phone.value}
+        onChangeText={(text) => setPhone({ value: text, error: '' })}
+        error={!!phone.error}
+        errorText={phone.error}
+      />
+      <TextInput
         label="Email"
         returnKeyType="next"
         value={email.value}
@@ -79,6 +89,7 @@ export default function RegisterScreen() {
         errorText={password.error}
         secureTextEntry
       />
+      
       <Button
         mode="contained"
         onPress={onSignUpPressed}

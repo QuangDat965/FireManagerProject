@@ -13,5 +13,7 @@ namespace FireManagerServer.Services.RuleServiceServices
         Task<bool> Create(RuleAddDto rule);
         Task<bool> Active(string id);
         Task<bool> DeActive(string id);
+        Task<bool> FireDeActive(string id);
+        Task<bool> FireActive(string id);
     }
 }

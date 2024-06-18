@@ -32,16 +32,15 @@ export default function LoginScreen() {
         "email": email.value,
         "password": password.value
       });
-      console.log(result);
       if(result!=null) {
         if(result.data.role ==='USER')
         {
           await AsyncStorage.setItem('token', result.data.token)
-          console.log(result.data.token);
           navigate('/Dashboard')
         }
-        else {
-
+        else if(result.data.role ==='ADMIN'){
+          await AsyncStorage.setItem('token', result.data.token)
+          navigate('/Home')
         }
       }
       

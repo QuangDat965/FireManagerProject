@@ -186,6 +186,8 @@ export default function UnitScreen() {
              }
             }
         })
+        handlePickApartment(aparmenId);
+
     }
     return (
         <BackgroundTop>
@@ -260,7 +262,7 @@ export default function UnitScreen() {
                             <ScrollView >
                                 {units != null && units.length > 0 ? units.map((e, i) => {
                                     e["isChecked"] = false;
-                                    unitCheckboxs.map((e2, i2) => {
+                                    unitCheckboxs.map((e2) => {
                                         if (idCheckboxs == e2.id) {
                                             e2.neighbour.map(e3 => {
                                                 if (e3.id == e.id) {

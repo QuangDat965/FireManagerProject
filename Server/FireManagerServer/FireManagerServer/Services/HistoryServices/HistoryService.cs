@@ -35,7 +35,7 @@ namespace FireManagerServer.Services.HistoryServices
 
         public async Task<List<HistoryDisplayDto>> GetAll()
         {
-            var entities = await _dbContext.HistoryDatas.ToListAsync();
+            var entities = await _dbContext.HistoryDatas.OrderBy(x=>x.DateRetrieve).Take(100).ToListAsync();
             var result = new List<HistoryDisplayDto>();
             foreach(var entity in entities)
             {

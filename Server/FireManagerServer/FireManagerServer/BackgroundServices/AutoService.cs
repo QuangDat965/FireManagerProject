@@ -18,6 +18,12 @@ using System.Text;
 using System.Net.Sockets;
 using FireManagerServer.Services.UnitServices;
 using System.Reflection;
+using FireManagerServer.Common;
+using FireManagerServer.Services.DeviceServices;
+using System.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace FireManagerServer.BackgroundServices
 {
@@ -25,22 +31,25 @@ namespace FireManagerServer.BackgroundServices
     {
         private readonly IConfiguration _configuration;
         private readonly MqttClient _mqttClient;
+        private readonly ILoggerService<AutoService> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public AutoService(IConfiguration configuration, IServiceScopeFactory scopeFactory)
+        public AutoService(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILoggerService<AutoService> logger)
         {
             _configuration = configuration;
             _scopeFactory = scopeFactory;
             _mqttClient = new MqttClient(configuration.GetValue<string>("BrokerHost"));
+            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _mqttClient.MqttMsgPublishReceived += async (sender, e) =>
             {
+                _logger.WillLog($"retrieve topic e: {e.Topic}");
                 await ProcessEventAsync(sender, e);
             };
-            string[] topic = new string[] { _configuration.GetValue<string>("SystemId") + "/#" };
+            string[] topic = new string[] { Constance.TOPIC_ASYNC + "/#" };
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -68,7 +77,8 @@ namespace FireManagerServer.BackgroundServices
         {
             await _semaphore.WaitAsync();
             try
-            {
+            {            
+                _logger.WillLog($"Process topic e: {e.Topic}");
                 var message = new MessageRawModel()
                 {
                     Topic = e.Topic,
@@ -76,27 +86,24 @@ namespace FireManagerServer.BackgroundServices
                 };
 
                 var arrgs = message.Topic.Split("/");
-                var moduleId = arrgs[1];
-                var moduleName = arrgs[2];
-                var sub = "";
-                try
+                var moduleId = arrgs[2];
+                var moduleName = arrgs[3];
+                var rules = new List<RuleDisplayDto>();
+                using (var scope = _scopeFactory.CreateScope())
                 {
-                    sub = arrgs[3];
+                    var ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
+
+                    var results = await ruleService.GetByModuleId(moduleId);
+                    rules = results.Where(x => x.isActive == true).ToList();
                 }
-                catch { };
-                if (string.IsNullOrEmpty(sub))
-                {
-                    var rules = new List<RuleDisplayDto>();
-                    using (var scope = _scopeFactory.CreateScope())
-                    {
-                        var ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
-                        var results = await ruleService.GetByModuleId(moduleId);
-                        rules = results.Where(x => x.isActive == true).ToList();
-                    }
-                    Console.WriteLine("Start HandleRuleRire");
-                    await HandleRuleFire(rules, message, moduleId, moduleName, true);
-                    Console.WriteLine("End HandleRuleRire");
-                }
+                _logger.WillLog($"get rule: {JsonConvert.SerializeObject(rules)}");
+
+                Console.WriteLine("Start HandleRuleRire");
+                _logger.WillLog($"Start handleRuleService: {e.Topic}");
+                await HandleRuleFire(rules, message, moduleId, moduleName);
+                _logger.WillLog($"Finished handleRuleService: {e.Topic}");
+                Console.WriteLine("End HandleRuleRire");
+
             }
             catch { }
             finally
@@ -106,15 +113,16 @@ namespace FireManagerServer.BackgroundServices
         }
 
 
-        private async Task HandleRuleFire(List<RuleDisplayDto> rules, MessageRawModel message, string moduleId, string moduleName, bool notify)
+        private async Task HandleRuleFire(List<RuleDisplayDto> rules, MessageRawModel message, string moduleId, string moduleName)
         {
             foreach (var rule in rules)
             {
+                _logger.WillLog($"HadleruleId: {rule.Id}");
 
                 var deviceSensors = message.Payload.ToSensorModel();
                 var sensorDbs = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.R).ToList();
                 Console.WriteLine("sensor:" + sensorDbs.Count);
-                var sensorDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Name, x => x.Value);
+                var sensorDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Id, x => x.Value);
                 var implDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Name, x => x.Name);
                 if (rule.TypeRule == Common.TypeRule.And)
                 {
@@ -123,13 +131,14 @@ namespace FireManagerServer.BackgroundServices
                     var results = new List<bool>();
                     foreach (var x in sensorDbs)
                     {
+                        _logger.WillLog($"sensorDb:: {JsonConvert.SerializeObject(x)}");
 
                         if (x.TypeCompare == Common.TypeCompare.Bigger)
                         {
                             string value = sensorDeviceCheckmapping[x.DeviceId];
                             double raw = double.Parse(value);
                             var a = (int)Math.Round(raw);
-           
+
                             bool result = x.ThreshHold < (int)Math.Round(raw);
                             Console.WriteLine("Device:" + a);
                             Console.WriteLine("Db:" + x.ThreshHold);
@@ -143,32 +152,85 @@ namespace FireManagerServer.BackgroundServices
                             results.Add(result);
                         }
                     }
-                    Console.WriteLine("Rule Status: "+ results.Contains(false));
+                    _logger.WillLog($"Rule status: {results.Contains(false)}");
+                    Console.WriteLine("Rule Status: " + results.Contains(false));
                     if (results.Contains(false))
                     {
                         continue;
                     }
-                   
+
                     var deviceImplements = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.W).ToList();
                     Console.WriteLine($"Device Type W: {deviceImplements.Count}");
 
                     foreach (var deviceImplement in deviceImplements)
                     {
-                        var systemId = _configuration.GetValue<string>("SystemId");
-                        var topic = $"{systemId}/{moduleId}/{moduleName}/sub/{implDeviceCheckmapping[deviceImplement.DeviceId]}";
-                        _mqttClient.Publish(topic, Encoding.UTF8.GetBytes(deviceImplement.ThreshHold.ToString()));
-                        if (notify)
+                        using (var scope = _scopeFactory.CreateScope())
                         {
-                            Console.WriteLine("Start Notify");
-                            await NotifyNeightBour(moduleId, message, moduleId, moduleName);
-                            Console.WriteLine("End Notify");
+                            var _deviceService = scope.ServiceProvider.GetRequiredService<IDeviceService>();
+                            var _moduleService = scope.ServiceProvider.GetRequiredService<IModuleService>();
+                            var _apartmentService = scope.ServiceProvider.GetRequiredService<IApartmentService>();
+                            var _ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
+                            _logger.WillLog($"Start On/Off: {deviceImplement.DeviceId}");
 
+                            if (deviceImplement.ThreshHold == 0)
+                            {
+                                await _deviceService.OffDevice(deviceImplement.DeviceId,"System");
+
+                            }
+                            else
+                            {
+                                await _deviceService.OnDevice(deviceImplement.DeviceId, "System");
+
+                            }
+                            _logger.WillLog($"Fnish On/Off: {deviceImplement.DeviceId}");
+
+                            var module = await _moduleService.GetbyId(rule.ModuleId);
+                            var apartmentId = module.ApartmentId;
+                            var neighbours = await _apartmentService.GetNeighBour(apartmentId);
+                            if (neighbours?.Count > 0)
+                            {
+                                foreach (var neigh in neighbours)
+                                {
+                                    var nModules = await _moduleService.GetbyUnitId(neigh.Id);
+                                    foreach (var nModule in nModules)
+                                    {
+                                        var nRules = await _ruleService.GetByModuleId(nModule.Id);
+                                        nRules = nRules.Where(x => x.isFireRule == true && x.isActive == true).ToList();
+                                        foreach (var nRule in nRules)
+                                        {
+                                            if (nRule.TopicThreshholds?.Count > 0)
+                                            {
+                                                var nDeviceImplemetns = new List<TopicThreshholdDisplayDto>();
+                                                foreach (var deviceI in nRule.TopicThreshholds)
+                                                {
+                                                    if (deviceI.DeviceType == DeviceType.W)
+                                                    {
+                                                        nDeviceImplemetns.Add(deviceI);
+                                                    }
+                                                }
+                                                if (nDeviceImplemetns.Count > 0)
+                                                {
+                                                    foreach (var nDeviceImplenment in nDeviceImplemetns)
+                                                    {
+                                                        if (nDeviceImplenment.ThreshHold == 0)
+                                                        {
+                                                            await _deviceService.OffDevice(nDeviceImplenment.DeviceId, "System");
+                                                        }
+                                                        else
+                                                        {
+                                                            await _deviceService.OnDevice(nDeviceImplenment.DeviceId, "System");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                         
 
                         }
                     }
-
-
-
                 }
                 else if (rule.TypeRule == Common.TypeRule.Or)
                 {
@@ -196,51 +258,72 @@ namespace FireManagerServer.BackgroundServices
                         var deviceImplements = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.W).ToList();
                         foreach (var deviceImplement in deviceImplements)
                         {
-                            var systemId = _configuration.GetValue<string>("SystemId");
-                            var topic = $"{systemId}/{moduleId}/{moduleName}/sub/{implDeviceCheckmapping[deviceImplement.DeviceId]}";
-                            _mqttClient.Publish(topic, Encoding.UTF8.GetBytes(deviceImplement.ThreshHold.ToString()));
-                            if (notify)
+                            using (var scope = _scopeFactory.CreateScope())
                             {
-                                await NotifyNeightBour(moduleId, message, moduleId, moduleName);
+                                var _deviceService = scope.ServiceProvider.GetRequiredService<IDeviceService>();
+                                var _moduleService = scope.ServiceProvider.GetRequiredService<IModuleService>();
+                                var _apartmentService = scope.ServiceProvider.GetRequiredService<IApartmentService>();
+                                var _ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
+                                if (deviceImplement.ThreshHold == 0)
+                                {
+                                    await _deviceService.OffDevice(deviceImplement.DeviceId, "System");
 
+                                }
+                                else
+                                {
+                                    await _deviceService.OnDevice(deviceImplement.DeviceId, "System");
+
+                                }
+                                var module = await _moduleService.GetbyId(rule.ModuleId);
+                                var apartmentId = module.ApartmentId;
+                                var neighbours = await _apartmentService.GetNeighBour(apartmentId);
+                                if (neighbours?.Count > 0)
+                                {
+                                    foreach (var neigh in neighbours)
+                                    {
+                                        var nModules = await _moduleService.GetbyUnitId(neigh.BuldingId);
+                                        foreach (var nModule in nModules)
+                                        {
+                                            var nRules = await _ruleService.GetByModuleId(nModule.Id);
+                                            nRules = nRules.Where(x => x.isFireRule == true && x.isActive == true).ToList();
+                                            foreach (var nRule in nRules)
+                                            {
+                                                if (nRule.TopicThreshholds?.Count > 0)
+                                                {
+                                                    var nDeviceImplemetns = new List<TopicThreshholdDisplayDto>();
+                                                    foreach (var deviceI in nRule.TopicThreshholds)
+                                                    {
+                                                        if (deviceI.DeviceType == DeviceType.W)
+                                                        {
+                                                            nDeviceImplemetns.Add(deviceI);
+                                                        }
+                                                    }
+                                                    if (nDeviceImplemetns.Count > 0)
+                                                    {
+                                                        foreach (var nDeviceImplenment in nDeviceImplemetns)
+                                                        {
+                                                            if (nDeviceImplenment.ThreshHold == 0)
+                                                            {
+                                                                await _deviceService.OffDevice(nDeviceImplenment.DeviceId, "System");
+                                                            }
+                                                            else
+                                                            {
+                                                                await _deviceService.OnDevice(nDeviceImplenment.DeviceId, "System");
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-
-        }
-
-        private async Task NotifyNeightBour(string moduleId, MessageRawModel message, string moduleIdDevice, string moduleName)
-        {
-            try
-            {
-                var scope = _scopeFactory.CreateScope();
-                var _moduleService = scope.ServiceProvider.GetService<IModuleService>();
-                var _apartmentService = scope.ServiceProvider.GetService<IApartmentService>();
-                var _ruleService = scope.ServiceProvider.GetService<IRuleService>();
-
-                var module = await _moduleService.GetbyId(moduleId);
-                var neightbours = await _apartmentService.GetNeighBour(module.ApartmentId);
-                foreach (var neighbour in neightbours)
-                {
-                    var modules = await _moduleService.GetbyUnitId(neighbour.Id);
-                    if (modules?.Count > 0)
-                    {
-                        foreach (var moduleNeighb in modules)
-                        {
-                            if (moduleNeighb != null)
-                            {
-                                var rules = await _ruleService.GetByModuleId(moduleNeighb.Id);
-                                rules = rules.Where(x => x.isFireRule == true).ToList();
-                                await HandleRuleFire(rules, message, moduleId, moduleName, false);
-                            }
-                        }
-                    }
-                }
+                _logger.WillLog($"Finish ruleId: {rule.Id}");
 
             }
-            catch { };
 
         }
     }

@@ -11,7 +11,7 @@ init({
   sync : {}
 });
 const options = {
-  host: 'broker.emqx.io',
+  host: '103.195.239.175',
   port: 8083,
 };
 class MqttService  {
@@ -32,17 +32,17 @@ class MqttService  {
   
 
   checkConnect = () => {
-    console.log(this.client.isConnected());
+    (this.client.isConnected());
   }
 
   onFailure = (err) => {
-    console.log('Connect failed!');
-    console.log(err);
+    ('Connect failed!');
+    (err);
   }
   onConnectionLost=(responseObject)=>{
     
     while(responseObject.errorCode !==0){
-      console.log('onConnectionLost:' + responseObject.errorMessage);
+      ('onConnectionLost:' + responseObject.errorMessage);
       
     }
   }

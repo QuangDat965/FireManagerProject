@@ -48,7 +48,16 @@ namespace FireManagerServer.Controllers
         {
             return await ruleService.DeActive(id);
         }
-
+        [HttpPost("fireRule/active/{id}")]
+        public async Task<bool> FireActive(string id)
+        {
+            return await ruleService.FireActive(id);
+        }
+        [HttpPost("fireRule/deactive/{id}")]
+        public async Task<bool> FireDeActive(string id)
+        {
+            return await ruleService.FireDeActive(id);
+        }
         // PUT api/<RuleController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)

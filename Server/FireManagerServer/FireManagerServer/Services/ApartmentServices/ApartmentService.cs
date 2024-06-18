@@ -30,32 +30,22 @@ namespace FireManagerServer.Services.UnitServices
 
         public async Task<bool> AddUpdateNeighBour(NeighBourDto unit)
         {
-            var aps = unit.NeighboudIds.Select(e => new ApartmentNeighbour
+            var apartmentNeightnews = new List<ApartmentNeighbour>();
+            var apartmentDeletes =await dbContext.ApartmentNeighbours.Where(x => x.ApartmentId == unit.CurrentApartmentId || x.NeighbourId == unit.CurrentApartmentId).ToListAsync();
+            dbContext.RemoveRange(apartmentDeletes);
+            if(unit.NeighboudIds?.Count>0)
             {
-                ApartmentId = unit.CurrentApartmentId,
-                NeighbourId = e
-            }).ToList();
-
-            var olds = await dbContext.ApartmentNeighbours
-                .Where(p => p.ApartmentId == unit.CurrentApartmentId)
-                .ToListAsync();
-
-            var comparer = new ApartmentNeighbourComparer();
-            var addNeigh = aps.Except(olds, comparer).ToList();
-            var deleteNeigh = olds.Except(aps, comparer).ToList();
-
-            if (addNeigh.Any())
-            {
-                dbContext.ApartmentNeighbours.AddRange(addNeigh);
-                await dbContext.SaveChangesAsync();
+                foreach (var newvalue in unit.NeighboudIds)
+                {
+                    apartmentNeightnews.Add(new ApartmentNeighbour()
+                    {
+                        ApartmentId = unit.CurrentApartmentId,
+                        NeighbourId = newvalue
+                    });
+                }
             }
-
-            if (deleteNeigh.Any())
-            {
-                dbContext.ApartmentNeighbours.RemoveRange(deleteNeigh);
-                await dbContext.SaveChangesAsync();
-            }
-
+            dbContext.AddRange(apartmentNeightnews);
+            dbContext.SaveChanges();
             return true;
         }
 
@@ -101,8 +91,23 @@ namespace FireManagerServer.Services.UnitServices
 
         public async Task<List<Apartment>> GetNeighBour(string id)
         {
-            var rs = await dbContext.ApartmentNeighbours.Where(p => p.ApartmentId == id).Select(p=>p.NeighbourId).ToListAsync();
-            var apm = await dbContext.Apartments.Where(p => rs.Contains(p.Id)).ToListAsync();
+            var ids = new List<string>();
+            // láy ra hàng xóm liên quan
+            var neightboursAround = await dbContext.ApartmentNeighbours.Where(p => p.ApartmentId == id || p.NeighbourId == id).ToListAsync();
+            // lấy hàng xóm bên trái và phải
+            var leftneighbour = neightboursAround.Where(x=>x.ApartmentId != id).Select(x => x.ApartmentId).Distinct().ToList();
+            var rightneighbour = neightboursAround.Where(x => x.NeighbourId != id).Select(x => x.NeighbourId).Distinct().ToList();
+            ids.AddRange(leftneighbour);
+            ids.AddRange(rightneighbour);
+            // lọc hàng xóm trùng
+            ids = ids.Distinct().ToList();
+            var apm = await dbContext.Apartments.Where(p => ids.Contains(p.Id)).Select(p=> new Apartment{
+                Id = p.Id,
+                Name = p.Name,
+                Desc = p.Desc,
+                BuldingId = p.BuldingId,
+                IsFire = p.IsFire,
+            }).ToListAsync();
             return apm;
         }
 

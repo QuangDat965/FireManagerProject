@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Modal } from 'react-native';
 import { Button, RadioButton } from 'react-native-paper';
 
-const CustomPicker = ({ items, onSelectionChange, title }) => {
+const CustomPicker = ({ items, onSelectionChange, title, or }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -16,7 +16,7 @@ const CustomPicker = ({ items, onSelectionChange, title }) => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => handleSelection(item)} style={styles.item}>
-      <Text>{item.label}</Text>
+      <Text>{or==null?item.label:item.moduleName}</Text>
       <RadioButton
         value={item.id}
         status={selectedItem?.id === item.id ? 'checked' : 'unchecked'}

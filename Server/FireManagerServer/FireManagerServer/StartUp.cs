@@ -4,6 +4,7 @@ using FireManagerServer.Service.JwtService;
 using FireManagerServer.Services.ApartmentService;
 using FireManagerServer.Services.AuthenService;
 using FireManagerServer.Services.DeviceServices;
+using FireManagerServer.Services.HistoryServices;
 using FireManagerServer.Services.ModuleServices;
 using FireManagerServer.Services.RoleService;
 using FireManagerServer.Services.RuleServiceServices;
@@ -28,6 +29,9 @@ namespace FireManagerServer
             builder.Services.AddScoped<IModuleService, ModuleService>();
             builder.Services.AddScoped<IRuleService, RuleService>();
             builder.Services.AddScoped<IDeviceService, DeviceService>();
+            builder.Services.AddScoped<IHistoryService, HistoryService>();
+            builder.Services.AddSingleton(typeof(ILoggerService<>), typeof(LoggerService<>));
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAllHeaders",

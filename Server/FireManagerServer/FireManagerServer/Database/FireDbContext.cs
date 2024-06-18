@@ -62,7 +62,7 @@ namespace FireManagerServer.Database
                 .HasOne(e => e.Apartment)
                 .WithMany(p => p.Modules)
                 .HasForeignKey(e => e.ApartmentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<Module>()
                 .HasOne(e => e.User)
                 .WithMany(p => p.Modules)

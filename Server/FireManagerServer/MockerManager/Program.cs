@@ -1,66 +1,37 @@
-﻿using MockerManager;
-using System.Text;
-using uPLibrary.Networking.M2Mqtt;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-internal class Program
+public class Program
 {
-    private static void Main(string[] args)
+    public static void Main()
     {
+        Console.WriteLine("Main starting...");
+        DoWork(); // Đồng bộ, chặn luồng chính
+        Console.WriteLine("DoWork completed.");
 
-
-
-        MqttClient client = new MqttClient("103.195.239.175");
-        client.MqttMsgPublishReceived += (s, e) =>
+        Task.Run(async () =>
         {
-            Console.WriteLine("Topic: " + e.Topic);
-            Console.WriteLine("Payload: " + Encoding.UTF8.GetString(e.Message));
-        };
-        client.Connect(Guid.NewGuid().ToString());
-        string systemid = "quangthanhdat250501";
-        client.Subscribe(new string[] { $"{systemid}/#" }, new byte[] { 0 });
-        var topicSend = systemid + "/espmockid/espmock";
-        client.Publish("quangthanhdat250501/espId-1723842-1qz2wsxE/ESP32-1/sub/Chuông báo", Encoding.UTF8.GetBytes("0"));
+            await DoWorkAsync(); // Bất đồng bộ, không chặn luồng chính
+            Console.WriteLine("DoWorkAsync completed.");
+        }).Wait();
 
+       
 
-
-        //var messsage1 = @"{Name:Chuông báo;Value:0;Type:W;Port:D16;Unit:On/Off},{Name:Khí gas;Value:2306.00;Type:R;Port:D35;Unit:A},{Name:Nhiệt độ;Value:31.80;Type:R;Port:D18;Unit:C},{Name:Cửa sổ;Value:0;Type:W;Port:D17;Unit:On/Off},";
-        //var rs = messsage1.ToSensorModel();
-
-        //while (true)
-        //{
-        //    var gaspay = new Random().Next(1023, 2000);
-        //    var temppay = new Random().Next(30, 40);
-        //    // Gửi dữ liệu từ module 2
-        //    var gaspay2 = new Random().Next(1023, 2000);
-        //    var temppay2 = new Random().Next(30, 40);
-        //    Console.Write("Gui du lieu: ");
-        //    var send = Console.ReadLine();
-
-        //    // Gửi dữ liệu từ module 1
-        //    if (send == "q")
-        //    {
-
-        //        client.Publish("quangthanhdat250501/espId-1723842-1qz2wsxE/ESP32-1/sub/Chuông báo", Encoding.UTF8.GetBytes("0"));
-        //        //client.Publish(tempaturepush, Encoding.UTF8.GetBytes(temppay.ToString()));
-
-        //        //client.Publish(window, Encoding.UTF8.GetBytes(0.ToString()));
-        //        Console.WriteLine("Send module 1 value");
-        //    }
-
-        //    if (send == "e")
-        //    {
-
-        //        //client.Publish(gaspush2, Encoding.UTF8.GetBytes(gaspay2.ToString()));
-        //        //client.Publish(tempaturepush2, Encoding.UTF8.GetBytes(temppay2.ToString()));
-        //        //client.Publish(window2, Encoding.UTF8.GetBytes(0.ToString()));
-        //        Console.WriteLine("Send module 2 value");
-        //    }
-
-
-        //}
-
-        //Console.ReadKey();
+        Console.WriteLine("Main ending...");
     }
-   
-}
 
+    public static void DoWork()
+    {
+        // Tác vụ dài hạn đồng bộ
+        Thread.Sleep(3000); // Chặn luồng chính trong 3 giây
+        Console.WriteLine("Synchronous work done.");
+    }
+
+    public static async Task DoWorkAsync()
+    {
+        // Tác vụ dài hạn bất đồng bộ
+        await Task.Delay(3000); // Không chặn luồng chính
+        Console.WriteLine("Asynchronous work done.");
+    }
+}

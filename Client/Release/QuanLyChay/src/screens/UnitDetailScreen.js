@@ -4,9 +4,10 @@ import { View, StyleSheet, Text, TouchableOpacity, ScrollView, Button } from 're
 import { theme } from '../core/theme'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon2 from 'react-native-vector-icons/FontAwesome6'
-import { getData, getDataNo, postData } from '../api/Api';
+import { getData, getDataNo, postData, postDataNobody } from '../api/Api';
 import MqttService from '../helpers/mqttService';
 import { useNavigate, useLocation } from 'react-router-native';
+import Loading from '../components/Loading';
 
 
 
@@ -19,6 +20,7 @@ export default function UnitDetailScreen() {
     const [dataModule, setDataModule] = useState([])
     const [screenControl, setScreenControl] = useState(0)
     const [devices, setDevice] = useState([])
+    const [isloading, setIsloading] = useState(false)
     useEffect(() => {
 
         const initial = async () => {
@@ -26,7 +28,7 @@ export default function UnitDetailScreen() {
                 "unitId": unit.id
             });
             const systemId = await getDataNo('System/id');
-            modules.map(async e => {
+            modules.forEach(async e => {
                 const deviceModules = await getData(`Device/${e.id}`);
                 if (deviceModules != null && deviceModules.length > 0) {
                     deviceModules.forEach(element => {
@@ -34,40 +36,35 @@ export default function UnitDetailScreen() {
                         setDevice([...devices])
                     });
                 }
-            })
-            modules.map(e => {
-                MqttProcess(e.id, systemId)
-            })
+                MqttProcess(e.id, systemId, e.moduleName)
+            });
         }
 
 
         initial()
     }, [])
-    const MqttProcess = (moduleId, s) => {
+    const MqttProcess = (moduleId, s, name) => {
         const service = new MqttService();
         const succcess = async (eee) => {
-            console.log('conneted to sever');
-            const topic = `${s}/${moduleId}`
-            console.log('topic:', topic);
+            const topic = `${s}/sync/${moduleId}/${name}`
             service.subscribeTopic(`${topic}/#`);
         }
         service.connect(succcess);
         const client = service.getCLient();
         client.onMessageArrived = (message) => {
 
-            console.log("Message received on topic: " + message.destinationName);
-            console.log("Message content: " + message.payloadString);
-            const topic = message.destinationName;
+            // console.log("Message received on topic: " + message.destinationName);
+            // console.log("Message content: " + message.payloadString);
+            // const topic = message.destinationName;
             const payload = message.payloadString;
            
             const listDevice = GetdataFromPayload(payload);
-            console.log(listDevice);
+     
+            
             listDevice.forEach(fModule => {
                
                 devices.forEach(fDb => {
-                    if(fModule.Name == fDb.topic) {
-                        console.log(fDb.payload );
-                        console.log(fModule.Value );
+                    if(fModule.Id == fDb.id) {
                         fDb.payload = fModule.Value
                     }
                 })
@@ -103,19 +100,26 @@ export default function UnitDetailScreen() {
             const dt = await getData('Building/getlist');
         }
         fetchdata();
-        console.log(await getSystemId());
     }
     const handleToggle = async (e) => {
-    const payload = e.payload == null || e.payload == 0 ? "1" : "0"      
-        rs = await postData('Mqtt/send/device', {
-            "topic":e.topic,
-            "payload":payload,
-            "moduleId": e.moduleId
-        });      
+    setIsloading(true);
+    console.log(e);
+    if(e.payload == null || e.payload == 0)
+        {
+            var rs = await postData(`Device/on/${e.id}`, {
+                "id":e.id
+            })
+        }
+    else {
+        var rs = await postDataNobody(`Device/off/${e.id}`)
+    }
+    setIsloading(false);    
+    
     }
     return (
         <BackgroundTop>
             {/* header */}
+            <Loading visible = {isloading}/>
             <View style={styles.header}>
                 <View style={[styles.box, { width: '30%', }]}>
                     <TouchableOpacity onPress={() => navigate(-1)}>
@@ -134,7 +138,6 @@ export default function UnitDetailScreen() {
 
             {/* item */}
             <View style={styles.item}>
-                <View style={{ position: 'relative' }}><Icon color='#fff' name='rocket' size={30}></Icon></View>
                 <View style={styles.itemleft}>
                     <Icon name="home" size={80} color={theme.colors.mainColor} />
                 </View>
@@ -162,7 +165,7 @@ export default function UnitDetailScreen() {
 
                 <View style={screenControl == 0 ? { padding: 10 } : { display: 'none' }}>
                     {devices.length > 0 ? devices.map((e,i) => {
-                        return (e.type === 0 ? <View key={i} style={styles.item}>
+                        return (e.type === 0 ? <View key={i} style={styles.item2}>
                             <View style={styles.itemleft}>
                                 <Icon name="eye" size={60} color={theme.colors.mainColor} />
                             </View>
@@ -200,8 +203,8 @@ export default function UnitDetailScreen() {
                 </View>
 
                 <View style={screenControl == 1 ? { padding: 10 } : { display: 'none' }}>
-                    {devices.length > 0 ? devices.map(e => {
-                        return (e.type === 1 ? <View style={styles.item}>
+                    {devices.length > 0 ? devices.map((e,i) => {
+                        return (e.type === 1 ? <View key={i} style={styles.item2}>
                             <View style={styles.itemleft}>
                                 <TouchableOpacity onPress={() => handleToggle(e)}>
                                     <Icon2 name={e.payload == 1 ? 'toggle-on' : 'toggle-off'} size={60} color={theme.colors.mainColor} />
@@ -244,11 +247,11 @@ export default function UnitDetailScreen() {
             <View style={{ width: '100%', justifyContent: 'center', alignItems: 'center', padding: 5, position: 'absolute', bottom: 0 }}>
                 <View style={styles.footer}>
                     <TouchableOpacity onPress={() => setScreenControl(0)} style={styles.fItem}>
-                        <Icon2 name="eye" size={50} color={screenControl == 0 ? theme.colors.mainColor : "#ccc"} />
+                        <Icon2 name="eye" size={38} color={screenControl == 0 ? theme.colors.mainColor : "#ccc"} />
                         <Text>Thiết bị cảm biến</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => setScreenControl(1)} style={styles.fItem}>
-                        <Icon2 name="hand-paper" size={50} color={screenControl == 1 ? theme.colors.mainColor : "#ccc"} />
+                        <Icon2 name="hand-paper" size={38} color={screenControl == 1 ? theme.colors.mainColor : "#ccc"} />
                         <Text>Thiết bị điều khiển</Text>
                     </TouchableOpacity>
                 </View>
@@ -264,12 +267,25 @@ const styles = StyleSheet.create({
     header: {
         backgroundColor: theme.colors.mainColor,
         width: '100%',
-        height: 117,
+        height: 80,
         flexDirection: 'row',
         justifyContent: 'space-between', // Canh lề giữa các phần tử
         alignItems: 'center'
     },
     item: {
+        height: 90,
+        overflow: 'hidden',
+        marginBottom: 10,
+        width: "100%",
+        flexDirection: 'row',
+        padding: 20,
+        alignItems: 'center',
+        borderColor: '#ccc',
+        borderWidth: 2,
+        borderRadius: 20,
+
+    },
+    item2: {
         height: 127,
         overflow: 'hidden',
         marginBottom: 10,
@@ -310,7 +326,7 @@ const styles = StyleSheet.create({
     },
     footer: {
         width: "95%",
-        height: 111,
+        height: 70,
         backgroundColor: '#fff',
         borderRadius: 41,
         borderWidth: 1,

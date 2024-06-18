@@ -1,8 +1,10 @@
-﻿using FireManagerServer.Database;
+﻿using FireManagerServer.Common;
+using FireManagerServer.Database;
 using FireManagerServer.Database.Entity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using uPLibrary.Networking.M2Mqtt;
 
 namespace FireManagerServer.Controllers
@@ -26,7 +28,7 @@ namespace FireManagerServer.Controllers
             try
             {
                 MqttClient client;
-                client = new MqttClient("broker.emqx.io");
+                client = new MqttClient(_configuration.GetValue<string>("BrokerHost"));
                 client.Connect(Guid.NewGuid().ToString());
                 client.Publish(request.Topic,System.Text.Encoding.UTF8.GetBytes(request.Payload));            
                 result = true;
@@ -40,12 +42,18 @@ namespace FireManagerServer.Controllers
         [HttpPost, Route("send/device")]
         public async Task<bool> SendDevice([FromBody] RequestMqtt request)
         {
-            var result = false;
+           
             try
             {
                 MqttClient client;
-                client = new MqttClient("broker.emqx.io");
+                string? responseFromDevice = null;
+                client = new MqttClient(_configuration.GetValue<string>("BrokerHost"));
+                client.MqttMsgPublishReceived += (sender, e) =>
+                {
+                    responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
+                };
                 client.Connect(Guid.NewGuid().ToString());
+               
                 var module = _dbContext.Modules.FirstOrDefault(p => p.Id == request.ModuleId);
                 var device = new DeviceEntity();
                 if(request.DeviceId!=null)
@@ -59,16 +67,25 @@ namespace FireManagerServer.Controllers
                 var systemId = _configuration.GetValue<string>("SystemId");
                 var moduleId = module.Id;
                 var moduleName =module.ModuleName;
-                var deviceName =device.Topic;
-                var topic =$"{systemId}/{moduleId}/{moduleName}/sub/{deviceName}";
+                var deviceId =device.Id;
+                client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{moduleId}/{deviceId}" }, new byte[] { 0 });
+                var topic =$"{Constance.TOPIC_WAIT}/{moduleId}/{deviceId}";
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes(request.Payload));
-                result = true;
+                for(int i =0; i< 10; i++)
+                {
+                    if(!string.IsNullOrEmpty(responseFromDevice))
+                    {
+                        return true;
+                    }
+                    ++i;
+                    Thread.Sleep(2000);
+                }
+                return false;
             }
             catch (Exception)
             {
-                result = false;
+                throw;
             }
-            return await Task.FromResult(result);
         }
 
     }

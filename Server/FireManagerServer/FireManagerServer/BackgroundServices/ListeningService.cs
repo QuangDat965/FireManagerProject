@@ -1,4 +1,5 @@
 ﻿
+using FireManagerServer.Common;
 using FireManagerServer.Database;
 using FireManagerServer.Database.Entity;
 using FireManagerServer.Services.DeviceServices;
@@ -13,18 +14,20 @@ namespace FireManagerServer.BackgroundServices
     {
         private readonly IConfiguration configuration;
         private readonly IDbContextFactory _dbContextFactory;
-        MqttClient client = new MqttClient("broker.emqx.io");
+        MqttClient client;
 
         public ListeningService(IConfiguration configuration, IDbContextFactory dbContextFactory)
         {
 
             this.configuration = configuration;
             _dbContextFactory = dbContextFactory;
+            client = new MqttClient(configuration.GetValue<string>("BrokerHost"));
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
             client.MqttMsgPublishReceived += ProcessEventAsync;
-            string[] topic = new string[] { configuration.GetValue<string>("SystemId") + "/#" };
+            string[] topic = new string[] { Constance.TOPIC_ASYNC + "/#" };
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -44,7 +47,6 @@ namespace FireManagerServer.BackgroundServices
                 await Task.Delay(TimeSpan.FromMilliseconds(1000), stoppingToken);
             }
         }
-
         private void ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
 
@@ -66,10 +68,10 @@ namespace FireManagerServer.BackgroundServices
         {
 
             var arrgs = packet.Topic.Split("/");
-            var moduleId = arrgs[1];
-            var moduleName = arrgs[2];
+            var moduleId = arrgs[2];
+            var moduleName = arrgs[3];
             string message = packet.Payload;
-            var devices = new List<SensorModel>();
+            var devices = message.ToSensorModel();
             var dbcontext = _dbContextFactory.CreateDbContext();
             //synsc module
             var module = dbcontext.Modules.FirstOrDefault(p => p.Id == moduleId);
@@ -83,36 +85,23 @@ namespace FireManagerServer.BackgroundServices
                 dbcontext.SaveChanges();
             }
             //synsc device 
-            string sub = "";
-            try
-            {
-                sub = arrgs[3];
-            }
-            catch (Exception)
-            {
-
-            }
-            try
-            {
-                devices = message.ToSensorModel();
-            }
-            catch (Exception) { };
             var deviceEntities = new List<DeviceEntity>();
-            if (devices?.Count > 0 && string.IsNullOrEmpty(sub))
+            if (devices?.Count>0)
             {
                 foreach (var device in devices)
                 {
-                    var deviceDb = dbcontext.Devices.FirstOrDefault(p => p.Topic == device.Name);
-                    if (deviceDb == null && string.IsNullOrEmpty(sub))
+                    var deviceDb = dbcontext.Devices.FirstOrDefault(p => p.Id == device.Id);
+                    if (deviceDb == null)
                     {
                         deviceEntities.Add(new DeviceEntity()
                         {
-                            Id = device.Name,
+                            Id = device.Id,
                             Topic = device.Name,
                             Port = device.Port,
                             Type = device.Type == "R" ? Common.DeviceType.R : Common.DeviceType.W,
                             ModuleId = moduleId,
                             Unit = device.Unit,
+                            InitValue = device.Value
                         });
                     }
                 }
@@ -122,6 +111,8 @@ namespace FireManagerServer.BackgroundServices
                 dbcontext.Devices.AddRange(deviceEntities);
                 dbcontext.SaveChanges();
             }
+            //syncs History
+            //Task.Run(()=>SaveDataDevice(packet));
         }
         private void SaveDataDevice(MessageRawModel packet)
         {
@@ -139,8 +130,10 @@ namespace FireManagerServer.BackgroundServices
                             DeviceName = sensor.Name,
                             DateRetrieve = DateTime.Now,
                             Value = sensor.Value,
-                            DeviceId = sensor.Name,
+                            DeviceId = sensor.Id,
+                            DeviceType = DeviceType.R
                         });
+                         _dbcontext.SaveChanges();
                     }
                 }
 

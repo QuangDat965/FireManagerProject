@@ -104,6 +104,10 @@ namespace FireManagerServer.Migrations
                     b.Property<DateTime?>("DateUpdate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("InitValue")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("ModuleId")
                         .IsRequired()
                         .HasColumnType("varchar(95)");
@@ -395,7 +399,7 @@ namespace FireManagerServer.Migrations
                     b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment")
                         .WithMany("Modules")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
                         .WithMany("Modules")

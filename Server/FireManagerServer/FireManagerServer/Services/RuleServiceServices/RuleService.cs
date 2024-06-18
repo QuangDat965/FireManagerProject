@@ -2,6 +2,7 @@
 using FireManagerServer.Database.Entity;
 using FireManagerServer.Model.Request;
 using FireManagerServer.Model.RuleModel;
+using FireManagerServer.Services.DeviceServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace FireManagerServer.Services.RuleServiceServices
@@ -9,10 +10,12 @@ namespace FireManagerServer.Services.RuleServiceServices
     public class RuleService : IRuleService
     {
         private readonly FireDbContext dbContext;
+        private readonly IDeviceService _deviceService;
 
-        public RuleService(FireDbContext dbContext)
+        public RuleService(FireDbContext dbContext,IDeviceService deviceService)
         {
             this.dbContext = dbContext;
+            _deviceService = deviceService;
         }
 
         public async Task<bool> Active(string id)
@@ -63,6 +66,7 @@ namespace FireManagerServer.Services.RuleServiceServices
         public async Task<bool> DeActive(string id)
         {
             var entity = await dbContext.RuleEntities.FirstOrDefaultAsync(p => p.Id == id);
+           
             if (entity == null)
             {
                 return false;
@@ -72,6 +76,18 @@ namespace FireManagerServer.Services.RuleServiceServices
                 entity.isActive = false;
                 dbContext.Update(entity);
                 await dbContext.SaveChangesAsync();
+                var deviceImps = await _deviceService.GetByModuleId(entity.ModuleId);
+                foreach (var di in deviceImps.Where(x => x.Type == Common.DeviceType.W).ToList())
+                {
+                    if (di.InitValue == "0" || di.InitValue == null)
+                    {
+                        await _deviceService.OffDevice(di.Id, "System");
+                    }
+                    else
+                    {
+                        await _deviceService.OnDevice(di.Id, "System");
+                    }
+                }
                 return true;
             }
         }
@@ -81,7 +97,51 @@ namespace FireManagerServer.Services.RuleServiceServices
             var entity = await dbContext.Rules.FirstOrDefaultAsync(x => x.Id == Id);
             dbContext.Rules.Remove(entity);
             await dbContext.SaveChangesAsync();
+            var deviceImps = await _deviceService.GetByModuleId(entity.ModuleId);
+            foreach (var di in deviceImps.Where(x => x.Type == Common.DeviceType.W).ToList())
+            {
+                if (di.InitValue == "0")
+                {
+                    await _deviceService.OnDevice(di.Id, "System");
+                }
+                else
+                {
+                    await _deviceService.OffDevice(di.Id, "System");
+                }
+            }
             return true;
+        }
+
+        public async Task<bool> FireActive(string id)
+        {
+            var entity = await dbContext.RuleEntities.FirstOrDefaultAsync(p => p.Id == id);
+            if (entity == null)
+            {
+                return false;
+            }
+            else
+            {
+                entity.isFireRule = true;
+                dbContext.Update(entity);
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+        }
+
+        public async Task<bool> FireDeActive(string id)
+        {
+            var entity = await dbContext.RuleEntities.FirstOrDefaultAsync(p => p.Id == id);
+            if (entity == null)
+            {
+                return false;
+            }
+            else
+            {
+                entity.isFireRule = false;
+                dbContext.Update(entity);
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
         }
 
         public async Task<List<RuleDisplayDto>> GetAll()
@@ -138,7 +198,7 @@ namespace FireManagerServer.Services.RuleServiceServices
                 display.TypeRule = entity.TypeRule;
                 display.TopicThreshholds = new();
                 var devices = await dbContext.Devices.Where(x => entity.TopicThreshholds.Select(y => y.DeviceId).Contains(x.Id)).ToListAsync();
-                var deMaping = devices.ToDictionary(x=>x.Id, x=>x.Type);
+                var deMaping = devices.ToDictionary(x=>x.Id, x=>x);
                 var topicthresholds = entity.TopicThreshholds.Select(x => new TopicThreshholdDisplayDto()
                 {
                     DeviceId = x.DeviceId,
@@ -146,7 +206,8 @@ namespace FireManagerServer.Services.RuleServiceServices
                     ThreshHold = x.ThreshHold,
                     TypeCompare = x.TypeCompare,
                     Value = x.Value,
-                    DeviceType = deMaping[x.DeviceId]
+                    DeviceType = deMaping[x.DeviceId].Type,
+                    Name = deMaping[x.DeviceId].Topic
                 }).ToList();
                 display.TopicThreshholds.AddRange(topicthresholds);
                 rs.Add(display);

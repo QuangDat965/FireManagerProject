@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'http://192.168.1.248';
+const API_URL = 'http://103.195.239.175';
 
 
 const getData = async (t) => {
@@ -13,7 +13,6 @@ const getData = async (t) => {
         Authorization: `Bearer ${token}`
       }
     });
-    console.log('response: ',response);
     
     const data = await response.json();
     return data;
@@ -33,7 +32,6 @@ const getDataNo = async (t) => {
         
       }
     });
-    console.log('response: ',response);
     
     const data = await response.text();
     return data;
@@ -59,7 +57,7 @@ const postData = async (end,postData) => {
     return data;
   } catch (error) {
     console.error('Error posting data:', error);
-    throw error;
+    return null;
   }
 };
 const postDataNobody = async (end) => {
@@ -76,7 +74,7 @@ const postDataNobody = async (end) => {
     return data;
   } catch (error) {
     console.error('Error posting data:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -114,7 +112,7 @@ const deleteData = async (end) => {
     return data;
   } catch (error) {
     console.error('Error deleting data:', error);
-    throw error;
+    return null;
   }
 };
 
