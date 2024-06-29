@@ -11,8 +11,8 @@ init({
   sync : {}
 });
 const options = {
-  host: '103.195.239.175',
-  port: 8083,
+  host: '152.42.190.66',
+  port: 9001,
 };
 class MqttService  {
   client = new  Paho.MQTT.Client(options.host, options.port, UUIDGenerator.v4());

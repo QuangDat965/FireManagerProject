@@ -10,14 +10,15 @@
 #define MQ2pin 35
 #define Dhtpin 18
 #define BellPin 16
+#define SubBellPin 12
 #define LedPin 17
 #define SystemId "datqt192755"
 #define Synsc "sync"
-#define Wait "wait"
+#define Wait "wait"    
 #define Response "response"
-#define EspId "espId-2505-1qz2wsxE"
-#define EspName "ESP32-1"
-
+#define EspId "esp32id-2"
+#define EspName "ESP32-2"
+ 
 struct MyPacket
 {
     String id;
@@ -30,7 +31,7 @@ struct MyPacket
 
 const char *ssid = "DatBeoDz";               // Tên của mạng WiFi
 const char *password = "25312001";           // Mật khẩu WiFi
-const char *mqtt_server = "103.195.239.175"; // Địa chỉ IP của MQTT broker   // Địa chỉ IP của MQTT broker
+const char *mqtt_server = "152.42.190.66"; // Địa chỉ IP của MQTT broker   // Địa chỉ IP của MQTT broker
 
 String TOPIC_SYNC = String(SystemId) + "/" + String(Synsc) + "/" + String(EspId)+ "/" + String(EspName);
 String TOPIC_WAIT = String(SystemId) + "/" + String(Wait) + "/" + String(EspId);
@@ -68,6 +69,14 @@ void setup()
     Serial.println("MQ2 warming up!");
     pinMode(BellPin, OUTPUT);
     pinMode(LedPin, OUTPUT);
+    pinMode(SubBellPin, OUTPUT);
+
+    pinMode(Dhtpin, INPUT);
+    pinMode(MQ2pin, INPUT);
+
+    digitalWrite(LedPin, LOW);
+    digitalWrite(BellPin, LOW);
+    digitalWrite(SubBellPin, LOW);
     delay(5000);
 }
 
@@ -78,10 +87,11 @@ void loop()
     {
         reconnect();
     }
+
     client.loop();
+    sendStatusTempature(message);
     sendStatusBell(message);
     sendValueMQ2(message);
-    sendStatusTempature(message);
     sendStatusWindow(message);
     const char *payload = message.c_str();
     client.publish(TOPIC_SYNC.c_str(), payload);
@@ -170,6 +180,7 @@ void sendValueMQ2(String &message)
 void sendStatusTempature(String &message)
 {
     float temperature = dht.readTemperature();
+     Serial.print(temperature);
     MyPacket packet;
     packet.id = idTemp;
     packet.name = "Nhiệt độ";
@@ -208,12 +219,14 @@ void handleBell(String value)
     if (value == "1")
     {
         digitalWrite(BellPin, HIGH);
+        digitalWrite(SubBellPin, HIGH);
         String rs = TOPIC_RESPONSE +"/"+ idBell;
         client.publish(rs.c_str(),"1");
     }
     else
     {
         digitalWrite(BellPin, LOW);
+        digitalWrite(SubBellPin, LOW);
         String rs = TOPIC_RESPONSE +"/"+ idBell;
         client.publish(rs.c_str(),"0");
     }

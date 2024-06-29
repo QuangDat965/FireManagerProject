@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Modal } from 'react-native';
-import { Checkbox, Button } from 'react-native-paper';
+import { View,Button, Text, TouchableOpacity, StyleSheet, FlatList, Modal } from 'react-native';
+import { Checkbox } from 'react-native-paper';
+import { theme } from '../core/theme';
+import ButtonC from './Button';
 
 const CheckMultipe = ({ items, onSelectionChange, labelSet , title}) => {
   const [selectedItems, setSelectedItems] = useState([]);
@@ -24,7 +26,7 @@ const CheckMultipe = ({ items, onSelectionChange, labelSet , title}) => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => toggleSelection(item.id)} style={styles.item}>
-      <Text>{item[labelSet]}</Text>
+      <Text style={{color:theme.colors.mainColor}}>{item[labelSet]}</Text>
       <Checkbox
         status={selectedItems.includes(item.id) ? 'checked' : 'unchecked'}
         onPress={() => toggleSelection(item.id)}
@@ -34,7 +36,7 @@ const CheckMultipe = ({ items, onSelectionChange, labelSet , title}) => {
 
   return (
     <View>
-      <Button onPress={() => setModalVisible(true)}>{title}</Button>
+      <Button color={theme.colors.mainColor} onPress={() => setModalVisible(true)} title={title}/>
       <Modal
         animationType="slide"
         transparent={true}
@@ -49,8 +51,8 @@ const CheckMultipe = ({ items, onSelectionChange, labelSet , title}) => {
               keyExtractor={item => item.id}
               extraData={selectedItems}
             />
-            <Button mode="contained" onPress={handleConfirm}>Confirm</Button>
-            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
+            <ButtonC mode="contained" onPress={handleConfirm}>Confirm</ButtonC>
+            <ButtonC mode = 'outlined' onPress={() => setModalVisible(false)}>Cancel</ButtonC>
           </View>
         </View>
       </Modal>

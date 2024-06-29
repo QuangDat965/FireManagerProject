@@ -160,7 +160,7 @@ export default function UnitDetailScreen() {
 
             </View>
 
-            <Button onPress={() => testFun()} title="Thông số thiết bị"></Button>
+            <Button color={theme.colors.mainColor} onPress={() => testFun()} title="Thông số thiết bị"></Button>
             <ScrollView style={{ marginBottom: 100 }}>
 
                 <View style={screenControl == 0 ? { padding: 10 } : { display: 'none' }}>

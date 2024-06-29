@@ -21,6 +21,7 @@ namespace FireManagerServer.Model.RuleModel
         public string? RuleId { get; set; }
         public int? ThreshHold { get; set; }
         public int? Value { get; set; }
+        public string? InitialValue { get; set; }
         public TypeCompare TypeCompare { get; set; }
     }
 }

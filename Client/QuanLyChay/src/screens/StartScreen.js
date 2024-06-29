@@ -5,6 +5,7 @@ import Header from '../components/Header'
 import Button from '../components/Button'
 import Paragraph from '../components/Paragraph'
 import { useNavigate } from 'react-router-native';
+import { theme } from '../core/theme'
 
 export default function StartScreen() {
   const navigate = useNavigate();
@@ -18,12 +19,14 @@ export default function StartScreen() {
       <Button
         mode="contained"
         onPress={() => navigate('Login')}
+        style={{backgroundColor:theme.colors.mainColor}}
       >
         Đăng Nhập
       </Button>
       <Button
         mode="outlined"
         onPress={() => navigate('RegisterScreen')}
+  
       >
         Đăng Kí
       </Button>

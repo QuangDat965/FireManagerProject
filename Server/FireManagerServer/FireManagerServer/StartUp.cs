@@ -48,13 +48,10 @@ namespace FireManagerServer
         public static WebApplicationBuilder AddBackgroundServices(this WebApplicationBuilder builder)
         {
             builder.Services.AddSingleton<IDbContextFactory, DbContextFactory>();
-            //builder.Services.AddSingleton<ScopedServiceFactory<IApartmentService>>();
-            //builder.Services.AddSingleton<ScopedServiceFactory<IRuleService>>();
             builder.Services.AddSingleton(typeof(ScopedServiceFactory<>));
 
             builder.Services.AddHostedService<ListeningService>();
             builder.Services.AddHostedService<AutoService>();
-            //builder.Services.AddHostedService<ProcessDataService>();
             return builder;
         }
         public static WebApplicationBuilder AddMySql(this WebApplicationBuilder builder)

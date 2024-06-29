@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = 'http://103.195.239.175';
+const API_URL = 'http://152.42.190.66:84';
+// const API_URL = 'http://103.195.239.175';
 
 
 const getData = async (t) => {

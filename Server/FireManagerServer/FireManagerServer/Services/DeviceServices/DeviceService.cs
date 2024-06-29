@@ -33,7 +33,7 @@ namespace FireManagerServer.Services.DeviceServices
             return await dbContext.Devices.Where(p => p.ModuleId == moduleId).ToListAsync();
         }
 
-        public async Task<bool> OffDevice(string deviceId, string userid)
+        public async Task<bool> OffDevice(string deviceId, string userid, bool? timeout = true)
         {
             MqttClient client;
             string? responseFromDevice = null;
@@ -58,21 +58,24 @@ namespace FireManagerServer.Services.DeviceServices
             client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
             var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
             client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
-            for (int i = 0; i < 20; i++)
+            if (timeout == null)
             {
-                if (!string.IsNullOrEmpty(responseFromDevice))
+                for (int i = 0; i < 15; i++)
                 {
-                    htr.IsSuccess = true;
-                    await _historyService.Create(htr);
-                    return true;
+                    if (!string.IsNullOrEmpty(responseFromDevice))
+                    {
+                        htr.IsSuccess = true;
+                        await _historyService.Create(htr);
+                        return true;
+                    }
+                    ++i;
+                    Thread.Sleep(1000);
                 }
-                ++i;
-                Thread.Sleep(1000);
             }
             return false;
         }
 
-        public async Task<bool> OnDevice(string deviceId, string userid)
+        public async Task<bool> OnDevice(string deviceId, string userid, bool? timeout = true)
         {
             MqttClient client;
             string? responseFromDevice = null;
@@ -97,15 +100,19 @@ namespace FireManagerServer.Services.DeviceServices
             client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
             var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
             client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
-            for (int i = 0; i < 20; i++)
+            if (timeout==true)
             {
-                if (!string.IsNullOrEmpty(responseFromDevice))
+                for (int i = 0; i < 15; i++)
                 {
-                    htr.IsSuccess = true;
-                    return true;
+                    if (!string.IsNullOrEmpty(responseFromDevice))
+                    {
+                        htr.IsSuccess = true;
+                        await _historyService.Create(htr);
+                        return true;
+                    }
+                    ++i;
+                    Thread.Sleep(1000);
                 }
-                ++i;
-                Thread.Sleep(1000);
             }
             return false;
         }

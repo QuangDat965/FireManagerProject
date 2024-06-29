@@ -112,7 +112,7 @@ namespace FireManagerServer.BackgroundServices
                 dbcontext.SaveChanges();
             }
             //syncs History
-            //Task.Run(()=>SaveDataDevice(packet));
+            SaveDataDevice(packet);
         }
         private void SaveDataDevice(MessageRawModel packet)
         {

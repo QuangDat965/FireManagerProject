@@ -8,10 +8,13 @@ export default function ButtonC({ mode, style,colorc , ...props }) {
     <PaperButton
       style={[
         styles.button,
-        mode === 'outlined' && { backgroundColor: colorc!=null?colorc:theme.colors.surface },
+        mode === 'outlined' && { backgroundColor:theme.colors.surface },
+        mode === 'contained' && { backgroundColor:theme.colors.mainColor },
         style,
+        
+      
       ]}
-      labelStyle={styles.text}
+      labelStyle={mode === 'contained'?styles.text:mode === 'outlined'?styles.text2:styles.text}
       mode={mode}
       {...props}
     />
@@ -28,5 +31,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 15,
     lineHeight: 26,
+  },
+  text2: {
+    fontWeight: 'bold',
+    fontSize: 15,
+    lineHeight: 26,
+    color:theme.colors.mainColor
   },
 })

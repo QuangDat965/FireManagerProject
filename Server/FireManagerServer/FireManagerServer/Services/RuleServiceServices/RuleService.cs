@@ -207,7 +207,9 @@ namespace FireManagerServer.Services.RuleServiceServices
                     TypeCompare = x.TypeCompare,
                     Value = x.Value,
                     DeviceType = deMaping[x.DeviceId].Type,
-                    Name = deMaping[x.DeviceId].Topic
+                    Name = deMaping[x.DeviceId].Topic,
+                    InitialValue = deMaping[x.DeviceId].InitValue,
+
                 }).ToList();
                 display.TopicThreshholds.AddRange(topicthresholds);
                 rs.Add(display);

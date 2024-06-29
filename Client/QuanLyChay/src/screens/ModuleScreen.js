@@ -268,8 +268,8 @@ export default function ModuleScreen() {
                             </Picker>
                         </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10 }}>
-                            <Button onPress={() => addModuleToApartment()} title="Thêm mô đun"></Button>
-                            <Button onPress={() => synscModule()} title="Xem mô đun"></Button>
+                            <Button color={theme.colors.mainColor} onPress={() => addModuleToApartment()} title="Thêm mô đun"></Button>
+                            <Button color={theme.colors.mainColor} onPress={() => synscModule()} title="Xem mô đun"></Button>
                         </View>
                         <View style={{ padding: 10 }}>
                             {modules != null && modules.length > 0 ? modules.map((e, i) => {

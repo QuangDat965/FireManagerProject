@@ -15,10 +15,11 @@ namespace FireManagerServer.Services.ApartmentService
         }
         public async Task<bool> Add(ApartmentRequest request)
         {
+            var id = request.Id!=null? request.Id:Guid.NewGuid().ToString();
            
             await dbContext.AddAsync(new Building()
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = id,
                 Name = request.Name,
                 Desc = request.Desc,
                 UserId = request.UserId,

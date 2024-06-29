@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Modal } from 'react-native';
-import { Button, RadioButton } from 'react-native-paper';
+import { View,Button, Text, TouchableOpacity, StyleSheet, FlatList, Modal } from 'react-native';
+import {  RadioButton } from 'react-native-paper';
+import { theme } from '../core/theme';
+import ButtonC from './Button';
 
 const CustomPicker = ({ items, onSelectionChange, title, or }) => {
   const [selectedItem, setSelectedItem] = useState(null);
@@ -16,7 +18,7 @@ const CustomPicker = ({ items, onSelectionChange, title, or }) => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => handleSelection(item)} style={styles.item}>
-      <Text>{or==null?item.label:item.moduleName}</Text>
+      <Text style={{color:theme.colors.mainColor}}>{or==null?item.label:item.moduleName}</Text>
       <RadioButton
         value={item.id}
         status={selectedItem?.id === item.id ? 'checked' : 'unchecked'}
@@ -27,9 +29,8 @@ const CustomPicker = ({ items, onSelectionChange, title, or }) => {
 
   return (
     <View>
-      <Button onPress={() => setModalVisible(true)}>
-        {selectedItem ? selectedItem.label : title}
-      </Button>
+      <Button color={theme.colors.mainColor} onPress={() => setModalVisible(true)} title= {selectedItem ? selectedItem.label : title}/>
+      
       <Modal
         animationType="slide"
         transparent={true}
@@ -44,7 +45,7 @@ const CustomPicker = ({ items, onSelectionChange, title, or }) => {
               keyExtractor={item => item.id}
               extraData={selectedItem}
             />
-            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
+            <ButtonC mode='contained' onPress={() => setModalVisible(false)}>Cancel</ButtonC>
           </View>
         </View>
       </Modal>

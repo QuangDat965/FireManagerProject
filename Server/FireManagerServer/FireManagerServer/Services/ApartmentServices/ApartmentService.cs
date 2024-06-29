@@ -31,9 +31,9 @@ namespace FireManagerServer.Services.UnitServices
         public async Task<bool> AddUpdateNeighBour(NeighBourDto unit)
         {
             var apartmentNeightnews = new List<ApartmentNeighbour>();
-            var apartmentDeletes =await dbContext.ApartmentNeighbours.Where(x => x.ApartmentId == unit.CurrentApartmentId || x.NeighbourId == unit.CurrentApartmentId).ToListAsync();
+            var apartmentDeletes = await dbContext.ApartmentNeighbours.Where(x => x.ApartmentId == unit.CurrentApartmentId || x.NeighbourId == unit.CurrentApartmentId).ToListAsync();
             dbContext.RemoveRange(apartmentDeletes);
-            if(unit.NeighboudIds?.Count>0)
+            if (unit.NeighboudIds?.Count > 0)
             {
                 foreach (var newvalue in unit.NeighboudIds)
                 {
@@ -64,7 +64,7 @@ namespace FireManagerServer.Services.UnitServices
 
         public async Task<Apartment> GetById(string id)
         {
-            return await dbContext.Apartments.FirstOrDefaultAsync(x=>x.Id == id);
+            return await dbContext.Apartments.FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<List<Apartment>> GetList(UnitFilter filter)
@@ -95,13 +95,14 @@ namespace FireManagerServer.Services.UnitServices
             // láy ra hàng xóm liên quan
             var neightboursAround = await dbContext.ApartmentNeighbours.Where(p => p.ApartmentId == id || p.NeighbourId == id).ToListAsync();
             // lấy hàng xóm bên trái và phải
-            var leftneighbour = neightboursAround.Where(x=>x.ApartmentId != id).Select(x => x.ApartmentId).Distinct().ToList();
+            var leftneighbour = neightboursAround.Where(x => x.ApartmentId != id).Select(x => x.ApartmentId).Distinct().ToList();
             var rightneighbour = neightboursAround.Where(x => x.NeighbourId != id).Select(x => x.NeighbourId).Distinct().ToList();
             ids.AddRange(leftneighbour);
             ids.AddRange(rightneighbour);
             // lọc hàng xóm trùng
             ids = ids.Distinct().ToList();
-            var apm = await dbContext.Apartments.Where(p => ids.Contains(p.Id)).Select(p=> new Apartment{
+            var apm = await dbContext.Apartments.Where(p => ids.Contains(p.Id)).Select(p => new Apartment
+            {
                 Id = p.Id,
                 Name = p.Name,
                 Desc = p.Desc,
@@ -111,10 +112,18 @@ namespace FireManagerServer.Services.UnitServices
             return apm;
         }
 
+        public async Task<bool> SetIsFireOrNot(string id, bool isFire)
+        {
+            var apm = await dbContext.Apartments.Where(x => x.Id == id).FirstOrDefaultAsync();
+            apm.IsFire = isFire;
+            dbContext.Update(apm);
+            return await dbContext.SaveChangesAsync() > 0;
+        }
+
         public async Task<bool> Update(UnitUpdateDto unit)
         {
-            var rs = await dbContext.Apartments.FirstOrDefaultAsync(p=>p.Id == unit.Id);
-            if(rs == null)
+            var rs = await dbContext.Apartments.FirstOrDefaultAsync(p => p.Id == unit.Id);
+            if (rs == null)
             {
                 return false;
             }
@@ -128,19 +137,19 @@ namespace FireManagerServer.Services.UnitServices
         public async Task<bool> UpdateNeighBour(NeighBourDto unit)
         {
             var olds = await dbContext.ApartmentNeighbours.Where(p => p.ApartmentId == unit.CurrentApartmentId).ToListAsync();
-            if(olds!=null)
+            if (olds != null)
             {
                 dbContext.RemoveRange(olds);
                 dbContext.SaveChanges();
             }
             var apmUpdate = new List<ApartmentNeighbour>();
-            foreach(var e in unit.NeighboudIds)
+            foreach (var e in unit.NeighboudIds)
             {
                 var dtUpdate = new ApartmentNeighbour()
                 {
                     ApartmentId = unit.CurrentApartmentId,
                     NeighbourId = e
-                
+
                 };
                 apmUpdate.Add(dtUpdate);
             }

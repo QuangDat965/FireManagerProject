@@ -230,7 +230,7 @@ export default function AutoScreen() {
                                 />
                             </View>
                             <ScrollView style={{ height: 300 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' ,marginTop:4, marginBottom:4}}>
                                     <CheckMultiple items={devices.filter(x => x.type == 0)}
                                         onSelectionChange={(adds) => { onAddSensor(adds) }}
                                         labelSet="topic"
@@ -269,7 +269,7 @@ export default function AutoScreen() {
                                 </View>
 
                                 {/* device */}
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop:4, marginBottom:4 }}>
                                     <CheckMultiple items={devices.filter(x => x.type === 1)}
                                         onSelectionChange={(adds) => setControl(adds)}
                                         labelSet="topic"
@@ -305,7 +305,7 @@ export default function AutoScreen() {
                             <ButtonC onPress={() => OnPressSubmitRule()} mode="contained" >
                                 Submit
                             </ButtonC>
-                            <ButtonC onPress={onPressAddCancel} mode="contained" style={{ backgroundColor: '#ccc', color: '#000' }} >
+                            <ButtonC mode ='contained' onPress={onPressAddCancel}  style={{ backgroundColor: theme.colors.mainColor, color: '#000' }} >
                                 Cancel
                             </ButtonC>
                         </View>
@@ -321,7 +321,7 @@ export default function AutoScreen() {
 
                             <Text>{ruleDetail.desc}</Text>
                             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <Text style={{ fontWeight: '500' }}>Kiểu luật: </Text>
+                                <Text style={{ fontWeight: '500', color:theme.colors.mainColor }}>Kiểu luật: </Text>
                                 <Text>{ruleDetail.typeRule == 0 ? "And" : "Or"}</Text>
                             </View>
                             <ScrollView style={{ height: 300 }}>
@@ -367,7 +367,7 @@ export default function AutoScreen() {
                                     }) : <View></View>}
                                 </View>
                             </ScrollView>
-                            <ButtonC onPress={() => setViewRule(false)} mode="contained" style={{ backgroundColor: 'red', color: '#000' }} >
+                            <ButtonC onPress={() => setViewRule(false)} mode="contained" style={{  color: '#000' }} >
                                 Cancel
                             </ButtonC>
                         </View>
@@ -437,7 +437,7 @@ export default function AutoScreen() {
                         }) : <Picker.Item label="None" value={0} />}
                     </Picker>
                 </View>
-                <Button onPress={() => getListRule()} title="danh sách Rule"></Button>
+                <Button color={theme.colors.mainColor} onPress={() => getListRule()} title="danh sách Rule"></Button>
                 <ScrollView>
                     {rules != null && rules.length > 0 ? rules.map((e, i) => {
                         return <View key={i} style={styles.item}>
