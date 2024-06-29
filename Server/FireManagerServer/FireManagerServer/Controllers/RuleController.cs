@@ -1,5 +1,6 @@
 ﻿using FireManagerServer.Database.Entity;
 using FireManagerServer.Model.Request;
+using FireManagerServer.Model.RuleModel;
 using FireManagerServer.Services.RuleServiceServices;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,25 +20,44 @@ namespace FireManagerServer.Controllers
         }
         // GET: api/<RuleController>
         [HttpGet("all")]
-        public async Task<List<RuleEntity>> GetAll()
+        public async Task<List<RuleDisplayDto>> GetAll()
         {
             return await ruleService.GetAll();
         }
 
         // GET api/<RuleController>/5
         [HttpGet("{moduleId}")]
-        public async Task<List<RuleEntity>> Get(string moduleId)
+        public async Task<List<RuleDisplayDto>> Get(string moduleId)
         {
             return await ruleService.GetByModuleId(moduleId);
         }
 
         // POST api/<RuleController>
         [HttpPost]
-        public async Task<RuleEntity> Post([FromBody] RuleAddDto rule)
+        public async Task<bool> Post([FromBody] RuleAddDto rule)
         {
             return await ruleService.Create(rule);
         }
-
+        [HttpPost("active/{id}")]
+        public async Task<bool> Active(string id)
+        {
+            return await ruleService.Active(id);
+        }
+        [HttpPost("deactive/{id}")]
+        public async Task<bool> DeActive(string id)
+        {
+            return await ruleService.DeActive(id);
+        }
+        [HttpPost("fireRule/active/{id}")]
+        public async Task<bool> FireActive(string id)
+        {
+            return await ruleService.FireActive(id);
+        }
+        [HttpPost("fireRule/deactive/{id}")]
+        public async Task<bool> FireDeActive(string id)
+        {
+            return await ruleService.FireDeActive(id);
+        }
         // PUT api/<RuleController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
@@ -45,7 +65,7 @@ namespace FireManagerServer.Controllers
         }
 
         // DELETE api/<RuleController>/5
-        [HttpDelete("{id}")]
+        [HttpPost("{id}")]
         public async Task<bool> Delete(string id)
         {
             return await ruleService.Delete(id);

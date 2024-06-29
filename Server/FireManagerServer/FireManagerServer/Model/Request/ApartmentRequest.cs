@@ -7,6 +7,7 @@ namespace FireManagerServer.Model.Request
         public string? Name { get; set; }
         public string? Desc { get; set; }
         public string? UserId { get; set; }
+        public string? Id { get; set; }
     }
     public class ApartmentFilter
     {

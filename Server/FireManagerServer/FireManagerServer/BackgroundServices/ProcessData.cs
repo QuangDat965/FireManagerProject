@@ -128,6 +128,10 @@ public static class CustomMapper
                     {
                         model.Name = value;
                     }
+                    if (key == "Id")
+                    {
+                        model.Id = value;
+                    }
                     if (key == "Value")
                     {
                         model.Value = value;
@@ -153,6 +157,7 @@ public static class CustomMapper
 }
 public class SensorModel
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Value { get; set; }
     public string Type { get; set; }

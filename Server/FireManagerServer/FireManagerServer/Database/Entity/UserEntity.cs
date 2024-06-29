@@ -17,5 +17,6 @@ namespace FireManagerServer.Database.Entity
         public Role Role { get; set; }
         public List<Building> Buildings { get; set; }
         public List<Module> Modules { get; set; }
+        public List<HistoryData> HistoryDatas { get; set; }
     }
 }

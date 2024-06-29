@@ -6,6 +6,8 @@ namespace FireManagerServer.Services.DeviceServices
     {
         Task<List<DeviceEntity>> GetAll();
         Task<List<DeviceEntity>> GetByModuleId(string moduleId);
+        Task<bool> OnDevice(string deviceId,string userid, bool? timeout=true);
+        Task<bool> OffDevice(string deviceId, string userid, bool? timeout=true);
 
     }
 }

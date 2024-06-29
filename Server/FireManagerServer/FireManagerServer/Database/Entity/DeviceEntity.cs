@@ -13,7 +13,9 @@ namespace FireManagerServer.Database.Entity
         public Module Module { get; set; }
         public string Port { get; set; }
         public string Unit { get; set; }
+        public string InitValue { get; set; }
         public List<TopicThreshhold>? TopicThreshholds { get; set; }
+        public List<HistoryData>? HistoryDatas { get; set; }
 
     }
 }

@@ -104,6 +104,10 @@ namespace FireManagerServer.Migrations
                     b.Property<DateTime?>("DateUpdate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("InitValue")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("ModuleId")
                         .IsRequired()
                         .HasColumnType("varchar(95)");
@@ -128,6 +132,44 @@ namespace FireManagerServer.Migrations
                     b.HasIndex("ModuleId");
 
                     b.ToTable("Devices");
+                });
+
+            modelBuilder.Entity("FireManagerServer.Database.Entity.HistoryData", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<DateTime>("DateRetrieve")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("DeviceName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("DeviceType")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsSuccess")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(95)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("HistoryDatas");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
@@ -211,7 +253,7 @@ namespace FireManagerServer.Migrations
 
                     b.HasIndex("ModuleId");
 
-                    b.ToTable("Rules");
+                    b.ToTable("RuleEntity");
                 });
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.TopicThreshhold", b =>
@@ -334,12 +376,30 @@ namespace FireManagerServer.Migrations
                     b.Navigation("Module");
                 });
 
+            modelBuilder.Entity("FireManagerServer.Database.Entity.HistoryData", b =>
+                {
+                    b.HasOne("FireManagerServer.Database.Entity.DeviceEntity", "DeviceEntity")
+                        .WithMany("HistoryDatas")
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
+                        .WithMany("HistoryDatas")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("DeviceEntity");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FireManagerServer.Database.Entity.Module", b =>
                 {
                     b.HasOne("FireManagerServer.Database.Entity.Apartment", "Apartment")
                         .WithMany("Modules")
                         .HasForeignKey("ApartmentId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("FireManagerServer.Database.Entity.UserEntity", "User")
                         .WithMany("Modules")
@@ -408,6 +468,8 @@ namespace FireManagerServer.Migrations
 
             modelBuilder.Entity("FireManagerServer.Database.Entity.DeviceEntity", b =>
                 {
+                    b.Navigation("HistoryDatas");
+
                     b.Navigation("TopicThreshholds");
                 });
 
@@ -429,6 +491,8 @@ namespace FireManagerServer.Migrations
             modelBuilder.Entity("FireManagerServer.Database.Entity.UserEntity", b =>
                 {
                     b.Navigation("Buildings");
+
+                    b.Navigation("HistoryDatas");
 
                     b.Navigation("Modules");
                 });

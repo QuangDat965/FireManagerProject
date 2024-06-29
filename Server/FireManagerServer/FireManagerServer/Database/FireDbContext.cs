@@ -18,6 +18,8 @@ namespace FireManagerServer.Database
         public DbSet<DeviceEntity> Devices { get; set; }
         public DbSet<ApartmentNeighbour> ApartmentNeighbours { get; set; }
         public DbSet<TopicThreshhold> TopicThreshholds { get; set; }
+        public DbSet<HistoryData> HistoryDatas { get; set; }
+        public DbSet<RuleEntity> RuleEntities { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RuleEntity>().HasKey(e => e.Id);
@@ -27,7 +29,8 @@ namespace FireManagerServer.Database
             modelBuilder.Entity<Module>().HasKey(e => e.Id);
             modelBuilder.Entity<DeviceEntity>().HasKey(e => e.Id);
             modelBuilder.Entity<ApartmentNeighbour>().HasKey(e => new { e.ApartmentId, e.NeighbourId });
-            modelBuilder.Entity<TopicThreshhold>().HasKey(e => new { e.DeviceId, e.RuleId});
+            modelBuilder.Entity<TopicThreshhold>().HasKey(e => new { e.DeviceId, e.RuleId });
+            modelBuilder.Entity<HistoryData>().HasKey(e => e.Id);
 
 
             modelBuilder.Entity<UserEntity>()
@@ -47,19 +50,19 @@ namespace FireManagerServer.Database
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<ApartmentNeighbour>()
                 .HasOne(e => e.Apartment1)
-                .WithMany(p=>p.ApartmentNeighbours)
+                .WithMany(p => p.ApartmentNeighbours)
                 .HasForeignKey(e => e.ApartmentId)
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<ApartmentNeighbour>()
                 .HasOne(e => e.Apartment2)
-                .WithMany(p=>p.ApartmentNeighbours2)
+                .WithMany(p => p.ApartmentNeighbours2)
                 .HasForeignKey(e => e.NeighbourId)
                 .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Module>()
                 .HasOne(e => e.Apartment)
                 .WithMany(p => p.Modules)
                 .HasForeignKey(e => e.ApartmentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
             modelBuilder.Entity<Module>()
                 .HasOne(e => e.User)
                 .WithMany(p => p.Modules)
@@ -80,6 +83,16 @@ namespace FireManagerServer.Database
                 .WithMany(p => p.TopicThreshholds)
                 .HasForeignKey(e => e.RuleId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<HistoryData>()
+    .HasOne(e => e.DeviceEntity)
+    .WithMany(p => p.HistoryDatas)
+    .HasForeignKey(e => e.DeviceId)
+    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<HistoryData>()
+    .HasOne(e => e.User)
+    .WithMany(p => p.HistoryDatas)
+    .HasForeignKey(e => e.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

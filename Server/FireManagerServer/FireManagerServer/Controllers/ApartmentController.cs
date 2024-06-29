@@ -9,9 +9,9 @@ namespace FireManagerServer.Controllers
     [Route("[controller]")]
     public class ApartmentController:ControllerBase
     {
-        private readonly IUnitService unitService;
+        private readonly IApartmentService unitService;
 
-        public ApartmentController(IUnitService unitService)
+        public ApartmentController(IApartmentService unitService)
         {
             this.unitService = unitService;
         }
