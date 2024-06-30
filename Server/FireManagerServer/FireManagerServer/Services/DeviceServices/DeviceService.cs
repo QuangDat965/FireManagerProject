@@ -58,7 +58,7 @@ namespace FireManagerServer.Services.DeviceServices
             client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
             var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
             client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
-            if (timeout == null)
+            if (timeout == true)
             {
                 for (int i = 0; i < 15; i++)
                 {
