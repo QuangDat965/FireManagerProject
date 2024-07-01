@@ -31,7 +31,7 @@ struct MyPacket
 
 const char *ssid = "DatBeoDz";               // Tên của mạng WiFi
 const char *password = "25312001";           // Mật khẩu WiFi
-const char *mqtt_server = "152.42.190.66"; // Địa chỉ IP của MQTT broker   // Địa chỉ IP của MQTT broker
+const char *mqtt_server = "103.176.25.7"; // Địa chỉ IP của MQTT broker   // Địa chỉ IP của MQTT broker
 
 String TOPIC_SYNC = String(SystemId) + "/" + String(Synsc) + "/" + String(EspId)+ "/" + String(EspName);
 String TOPIC_WAIT = String(SystemId) + "/" + String(Wait) + "/" + String(EspId);
