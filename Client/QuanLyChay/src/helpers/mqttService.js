@@ -11,7 +11,7 @@ init({
   sync : {}
 });
 const options = {
-  host: '152.42.190.66',
+  host: '103.214.8.39',
   port: 9001,
 };
 class MqttService  {
