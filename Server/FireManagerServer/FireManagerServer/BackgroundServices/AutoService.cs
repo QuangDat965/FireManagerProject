@@ -72,11 +72,11 @@ namespace FireManagerServer.BackgroundServices
                 await Task.Delay(TimeSpan.FromMilliseconds(1000), stoppingToken);
             }
         }
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        //private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private async Task ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
-            await _semaphore.WaitAsync();
+            //await _semaphore.WaitAsync();
             try
             {            
                 _logger.WillLog($"Process topic e: {e.Topic}");
@@ -109,7 +109,7 @@ namespace FireManagerServer.BackgroundServices
             catch { }
             finally
             {
-                _semaphore.Release();
+                //_semaphore.Release();
             }
         }
 
