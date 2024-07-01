@@ -102,11 +102,11 @@ namespace FireManagerServer.Services.RuleServiceServices
             {
                 if (di.InitValue == "0")
                 {
-                    await _deviceService.OnDevice(di.Id, "System");
+                    await _deviceService.OffDevice (di.Id, "System");
                 }
                 else
                 {
-                    await _deviceService.OffDevice(di.Id, "System");
+                    await _deviceService.OnDevice(di.Id, "System");
                 }
             }
             return true;
