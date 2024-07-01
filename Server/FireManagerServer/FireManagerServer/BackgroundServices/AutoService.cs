@@ -165,6 +165,7 @@ namespace FireManagerServer.BackgroundServices
                     //no fire
                     if (results.Contains(false))
                     {
+                        await _apartmentService.SetIsFireOrNot(apartmentId, false);
                         #region check neigbour                     
                         var neighbours = await _apartmentService.GetNeighBour(apartmentId);
                         var fireNeighbourExists = neighbours.Where(x => x.IsFire == true).ToList();
@@ -174,7 +175,7 @@ namespace FireManagerServer.BackgroundServices
                         }
                         else
                         {
-                            await _apartmentService.SetIsFireOrNot(apartmentId, false);
+
                             await NotifyFire(rule, false);
                         }
                         
@@ -216,6 +217,7 @@ namespace FireManagerServer.BackgroundServices
                     }
                     else
                     {
+                        await _apartmentService.SetIsFireOrNot(apartmentId, false);
                         #region check neigbour                     
                         var neighbours = await _apartmentService.GetNeighBour(apartmentId);
                         var fireNeighbourExists = neighbours.Where(x => x.IsFire == true).ToList();
@@ -225,7 +227,7 @@ namespace FireManagerServer.BackgroundServices
                         }
                         else
                         {
-                            await _apartmentService.SetIsFireOrNot(apartmentId, false);
+                            
                             await NotifyFire(rule, false);
                         }
 
