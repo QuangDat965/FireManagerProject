@@ -69,16 +69,16 @@ namespace FireManagerServer.BackgroundServices
                     Console.WriteLine(ex.Message);
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(1000), stoppingToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(20000), stoppingToken);
             }
         }
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        //private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private async Task ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
-            await _semaphore.WaitAsync();
+            //await _semaphore.WaitAsync();
             try
-            {            
+            {
                 _logger.WillLog($"Process topic e: {e.Topic}");
                 var message = new MessageRawModel()
                 {
@@ -90,13 +90,10 @@ namespace FireManagerServer.BackgroundServices
                 var moduleId = arrgs[2];
                 var moduleName = arrgs[3];
                 var rules = new List<RuleDisplayDto>();
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    var ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
-
-                    var results = await ruleService.GetByModuleId(moduleId);
-                    rules = results.Where(x => x.isActive == true).ToList();
-                }
+                var scope = _scopeFactory.CreateScope();
+                var ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
+                var results = await ruleService.GetByModuleId(moduleId);
+                rules = results.Where(x => x.isActive == true).ToList();
                 _logger.WillLog($"get rule: {JsonConvert.SerializeObject(rules)}");
 
                 Console.WriteLine("Start HandleRuleRire");
@@ -106,10 +103,14 @@ namespace FireManagerServer.BackgroundServices
                 Console.WriteLine("End HandleRuleRire");
 
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exceptopn: " + ex);
+            }
             finally
             {
-                _semaphore.Release();
+                Console.WriteLine("=====================Done 1 messsage=================");
+                //_semaphore.Release();
             }
         }
 
@@ -169,7 +170,7 @@ namespace FireManagerServer.BackgroundServices
                         #region check neigbour                     
                         var neighbours = await _apartmentService.GetNeighBour(apartmentId);
                         var fireNeighbourExists = neighbours.Where(x => x.IsFire == true).ToList();
-                        if(fireNeighbourExists?.Count>0)
+                        if (fireNeighbourExists?.Count > 0)
                         {
                             await NotifyFire(rule, true);
                         }
@@ -178,7 +179,7 @@ namespace FireManagerServer.BackgroundServices
 
                             await NotifyFire(rule, false);
                         }
-                        
+
                         #endregion
                     }
                     //fire
@@ -186,7 +187,7 @@ namespace FireManagerServer.BackgroundServices
                     {
                         await _apartmentService.SetIsFireOrNot(apartmentId, true);
                         await NotifyFire(rule, true);
-                    }                            
+                    }
                 }
                 #endregion
                 else if (rule.TypeRule == Common.TypeRule.Or)
@@ -227,7 +228,7 @@ namespace FireManagerServer.BackgroundServices
                         }
                         else
                         {
-                            
+
                             await NotifyFire(rule, false);
                         }
 
@@ -255,7 +256,7 @@ namespace FireManagerServer.BackgroundServices
                     var _ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
                     _logger.WillLog($"Start On/Off: {deviceImplement.DeviceId}");
 
-                    if(isFire)
+                    if (isFire)
                     {
                         if (deviceImplement.ThreshHold == 0)
                         {
@@ -269,7 +270,7 @@ namespace FireManagerServer.BackgroundServices
                     }
                     else
                     {
-                        if(deviceImplement.InitialValue =="0")
+                        if (deviceImplement.InitialValue == "0")
                         {
                             await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
                         }

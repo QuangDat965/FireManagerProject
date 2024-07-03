@@ -50,17 +50,29 @@ namespace FireManagerServer.BackgroundServices
         private void ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
 
-            //var processcer = new ProcessData(e, configuration);
-            //processcer.TestLog();
-            //processcer.SyncModuleAndDevice();
-
-            var message = new MessageRawModel()
+          try
             {
-                Topic = e.Topic,
-                Payload = Encoding.UTF8.GetString(e.Message)
-            };
+                //var processcer = new ProcessData(e, configuration);
+                //processcer.TestLog();
+                //processcer.SyncModuleAndDevice();
 
-            this.SyncModuleAndDevice(message);
+                var message = new MessageRawModel()
+                {
+                    Topic = e.Topic,
+                    Payload = Encoding.UTF8.GetString(e.Message)
+                };
+
+                this.SyncModuleAndDevice(message);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("exception lisstring :"+ex.Message);
+
+            }
+            finally
+            {
+                Console.WriteLine("=======================Finally Listening=======================");
+            }
 
 
         }
