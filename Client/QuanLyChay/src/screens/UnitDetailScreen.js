@@ -142,8 +142,8 @@ export default function UnitDetailScreen() {
                     <Icon name="home" size={80} color={theme.colors.mainColor} />
                 </View>
                 <View style={styles.itemright}>
-                    <View style={{ flexDirection: 'row', }}>
-                        <Text style={{ fontWeight: '500' }}>Tên tòa: </Text>
+                    <View style={{ flexDirection: 'row', marginTop:5 }}>
+                        <Text style={{ fontWeight: '500' }}>Tên căn hộ: </Text>
                         <Text style={{ fontWeight: '500', opacity: 0.7 }}>{unit.name}</Text>
                     </View>
 

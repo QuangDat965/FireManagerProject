@@ -72,11 +72,11 @@ namespace FireManagerServer.BackgroundServices
                 await Task.Delay(TimeSpan.FromMilliseconds(20000), stoppingToken);
             }
         }
-        //private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
         private async Task ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)
         {
-            //await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
             try
             {
                 _logger.WillLog($"Process topic e: {e.Topic}");
@@ -110,7 +110,7 @@ namespace FireManagerServer.BackgroundServices
             finally
             {
                 Console.WriteLine("=====================Done 1 messsage=================");
-                //_semaphore.Release();
+                _semaphore.Release();
             }
         }
 
@@ -172,12 +172,12 @@ namespace FireManagerServer.BackgroundServices
                         var fireNeighbourExists = neighbours.Where(x => x.IsFire == true).ToList();
                         if (fireNeighbourExists?.Count > 0)
                         {
-                            await NotifyFire(rule, true);
+                            await NotifyFire(rule, true , _deviceService);
                         }
                         else
                         {
 
-                            await NotifyFire(rule, false);
+                            await NotifyFire(rule, false, _deviceService);
                         }
 
                         #endregion
@@ -186,7 +186,7 @@ namespace FireManagerServer.BackgroundServices
                     else
                     {
                         await _apartmentService.SetIsFireOrNot(apartmentId, true);
-                        await NotifyFire(rule, true);
+                        await NotifyFire(rule, true, _deviceService);
                     }
                 }
                 #endregion
@@ -214,7 +214,7 @@ namespace FireManagerServer.BackgroundServices
                     if (results.Contains(true))
                     {
                         await _apartmentService.SetIsFireOrNot(apartmentId, true);
-                        await NotifyFire(rule, true);
+                        await NotifyFire(rule, true, _deviceService);
                     }
                     else
                     {
@@ -224,12 +224,12 @@ namespace FireManagerServer.BackgroundServices
                         var fireNeighbourExists = neighbours.Where(x => x.IsFire == true).ToList();
                         if (fireNeighbourExists?.Count > 0)
                         {
-                            await NotifyFire(rule, true);
+                            await NotifyFire(rule, true, _deviceService)    ;
                         }
                         else
                         {
 
-                            await NotifyFire(rule, false);
+                            await NotifyFire(rule, false, _deviceService);
                         }
 
                         #endregion
@@ -241,47 +241,41 @@ namespace FireManagerServer.BackgroundServices
 
         }
 
-        private async Task NotifyFire(RuleDisplayDto rule, bool isFire)
+        private async Task NotifyFire(RuleDisplayDto rule, bool isFire, IDeviceService _deviceService)
         {
             var deviceImplements = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.W).ToList();
             Console.WriteLine($"Device Type W: {deviceImplements.Count}");
 
             foreach (var deviceImplement in deviceImplements)
             {
-                using (var scope = _scopeFactory.CreateScope())
+                _logger.WillLog($"Start On/Off: {deviceImplement.DeviceId}");
+
+                if (isFire)
                 {
-                    var _deviceService = scope.ServiceProvider.GetRequiredService<IDeviceService>();
-                    var _moduleService = scope.ServiceProvider.GetRequiredService<IModuleService>();
-                    var _apartmentService = scope.ServiceProvider.GetRequiredService<IApartmentService>();
-                    var _ruleService = scope.ServiceProvider.GetRequiredService<IRuleService>();
-                    _logger.WillLog($"Start On/Off: {deviceImplement.DeviceId}");
-
-                    if (isFire)
+                    if (deviceImplement.ThreshHold == 0)
                     {
-                        if (deviceImplement.ThreshHold == 0)
-                        {
-                            await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
-                        }
-                        else if (deviceImplement.ThreshHold == 1)
-                        {
-                            await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
+                        await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
+                    }
+                    else if (deviceImplement.ThreshHold == 1)
+                    {
+                        await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
 
-                        }
+                    }
+                }
+                else
+                {
+                    if (deviceImplement.InitialValue == "0")
+                    {
+                        await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
                     }
                     else
                     {
-                        if (deviceImplement.InitialValue == "0")
-                        {
-                            await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
-                        }
-                        else
-                        {
-                            await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
-                        }
+                        await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
                     }
-                    _logger.WillLog($"Fnish On/Off: {deviceImplement.DeviceId}");
-
                 }
+                _logger.WillLog($"Fnish On/Off: {deviceImplement.DeviceId}");
+
+
             }
         }
     }
