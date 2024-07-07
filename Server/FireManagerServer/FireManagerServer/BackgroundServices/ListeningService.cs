@@ -34,7 +34,7 @@ namespace FireManagerServer.BackgroundServices
                 {
                     if (!client.IsConnected)
                     {
-                        client.Connect(Guid.NewGuid().ToString());
+                        client.Connect("SystemClientId2");
                         client.Subscribe(topic, new byte[] { 0 });
                         Console.WriteLine("Connected Mqtt");
                     }
@@ -44,7 +44,7 @@ namespace FireManagerServer.BackgroundServices
                     Console.WriteLine(ex.Message);
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(1000), stoppingToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(5000), stoppingToken);
             }
         }
         private void ProcessEventAsync(object sender, MqttMsgPublishEventArgs e)

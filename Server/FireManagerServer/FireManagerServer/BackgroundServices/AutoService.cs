@@ -45,11 +45,7 @@ namespace FireManagerServer.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _mqttClient.MqttMsgPublishReceived += async (sender, e) =>
-            {
-                _logger.WillLog($"retrieve topic e: {e.Topic}");
-                await ProcessEventAsync(sender, e);
-            };
+           
             string[] topic = new string[] { Constance.TOPIC_ASYNC + "/#" };
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -58,7 +54,12 @@ namespace FireManagerServer.BackgroundServices
 
                     if (!_mqttClient.IsConnected)
                     {
-                        _mqttClient.Connect(Guid.NewGuid().ToString());
+                        _mqttClient.MqttMsgPublishReceived += async (sender, e) =>
+                        {
+                            _logger.WillLog($"retrieve topic e: {e.Topic}");
+                            await ProcessEventAsync(sender, e);
+                        };
+                        _mqttClient.Connect("SystemClientId");
                         _mqttClient.Subscribe(topic, new byte[] { 0 });
                         Console.WriteLine("Connected Mqtt");
                     }
@@ -69,7 +70,7 @@ namespace FireManagerServer.BackgroundServices
                     Console.WriteLine(ex.Message);
                 }
 
-                await Task.Delay(TimeSpan.FromMilliseconds(20000), stoppingToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(5000), stoppingToken);
             }
         }
         private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
@@ -164,7 +165,7 @@ namespace FireManagerServer.BackgroundServices
                     _logger.WillLog($"Rule status: {results.Contains(false)}");
                     Console.WriteLine("Rule Status: " + results.Contains(false));
                     //no fire
-                    if (results.Contains(false))
+                   if (results.Contains(false))
                     {
                         await _apartmentService.SetIsFireOrNot(apartmentId, false);
                         #region check neigbour                     

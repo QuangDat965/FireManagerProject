@@ -42,7 +42,7 @@ namespace FireManagerServer.Services.DeviceServices
             {
                 responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
             };
-            client.Connect(Guid.NewGuid().ToString());
+            client.Connect("SystemClientId");
             var device = await dbContext.Devices.Where(x => x.Id == deviceId).FirstOrDefaultAsync();
             var htr = new HistoryCreateDto()
             {
@@ -84,7 +84,7 @@ namespace FireManagerServer.Services.DeviceServices
             {
                 responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
             };
-            client.Connect(Guid.NewGuid().ToString());
+            client.Connect("SystemClientId");
             var device = await dbContext.Devices.Where(x => x.Id == deviceId).FirstOrDefaultAsync();
             var htr = new HistoryCreateDto()
             {

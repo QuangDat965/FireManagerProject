@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <DHT.h>
 #include <Adafruit_Sensor.h>
+#include <mutex>
 
 #pragma region declare variable
 #define MQ2pin 35
@@ -14,11 +15,11 @@
 #define LedPin 17
 #define SystemId "datqt192755"
 #define Synsc "sync"
-#define Wait "wait"    
+#define Wait "wait"
 #define Response "response"
 #define EspId "esp32id-2"
 #define EspName "ESP32-2"
- 
+
 struct MyPacket
 {
     String id;
@@ -29,22 +30,31 @@ struct MyPacket
     String port;
 };
 
-const char *ssid = "DatBeoDz";               // Tên của mạng WiFi
-const char *password = "25312001";           // Mật khẩu WiFi
+const char *ssid = "DatBeoDz";            // Tên của mạng WiFi
+const char *password = "25312001";        // Mật khẩu WiFi
 const char *mqtt_server = "103.176.25.7"; // Địa chỉ IP của MQTT broker   // Địa chỉ IP của MQTT broker
 
-String TOPIC_SYNC = String(SystemId) + "/" + String(Synsc) + "/" + String(EspId)+ "/" + String(EspName);
+String TOPIC_SYNC = String(SystemId) + "/" + String(Synsc) + "/" + String(EspId) + "/" + String(EspName);
 String TOPIC_WAIT = String(SystemId) + "/" + String(Wait) + "/" + String(EspId);
 String TOPIC_RESPONSE = String(SystemId) + "/" + String(Response) + "/" + String(EspId);
 
-String idTemp = String(EspId) +"id_Temp";
-String idGas = String(EspId) +"id_Gas";
-String idBell = String(EspId) +"id_Bell";
-String idWin = String(EspId) +"id_Win";
+String idTemp = String(EspId) + "id_Temp";
+String idGas = String(EspId) + "id_Gas";
+String idBell = String(EspId) + "id_Bell";
+String idWin = String(EspId) + "id_Win";
+
+bool messageReceived = false;
+bool isWorking = false;
+char lastTopic[100];
+byte lastPayload[100];
+int lastPayloadLength = 0;
+bool rBell = false;
+bool rWin = false;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 DHT dht(Dhtpin, DHT11);
+bool isProcess = false;
 #pragma endregion
 #pragma region delacre funcition
 void PushMes(String &messs, MyPacket packet);
@@ -56,6 +66,7 @@ void sendStatusTempature(String &message);
 void sendStatusWindow(String &message);
 void handleBell(String value);
 void handleWindow(String value);
+void doWork(char *topic, byte *payload, unsigned int length);
 void reconnect();
 #pragma endregion
 
@@ -95,6 +106,18 @@ void loop()
     sendStatusWindow(message);
     const char *payload = message.c_str();
     client.publish(TOPIC_SYNC.c_str(), payload);
+
+    if (messageReceived)
+    {
+        // Check if not currently working
+        if (!isWorking)
+        {
+            // Process message or call doWork() here
+            doWork(lastTopic, lastPayload, lastPayloadLength);
+            // Reset flag after work is done
+            messageReceived = false;
+        }
+    }
     delay(5000);
 }
 void reconnect()
@@ -105,7 +128,7 @@ void reconnect()
         // Tạo tên ngẫu nhiên cho client
         String clientId = "ClientDeive-";
         clientId += String(random(0xffff), HEX);
-        if (client.connect(clientId.c_str()))
+        if (client.connect(clientId.c_str(), NULL, NULL, NULL, 0, false, "disconnect", true))
         {
             String topic = TOPIC_WAIT + "/#";
             client.subscribe(topic.c_str());
@@ -115,11 +138,32 @@ void reconnect()
             Serial.print("failed, rc=");
             Serial.print(client.state());
             Serial.println(" try again in 5 seconds");
-            delay(5000);
+            delay(10);
         }
     }
 }
+
 void callback(char *topic, byte *payload, unsigned int length)
+{
+    Serial.println("Message received");
+    // Example: Print topic
+    Serial.print("Topic: ");
+    Serial.println(topic);
+    // Example: Print payload
+    Serial.print("Payload: ");
+    for (int i = 0; i < length; i++)
+    {
+        Serial.print((char)payload[i]);
+    }
+    Serial.println();
+    // Save topic and payload
+    strcpy(lastTopic, topic);
+    memcpy(lastPayload, payload, length);
+    lastPayloadLength = length;
+    // Set flag to indicate message received
+    messageReceived = true;
+}
+void doWork(char *topic, byte *payload, unsigned int length)
 {
     Serial.print("Message arrived [");
     Serial.print(topic);
@@ -137,12 +181,60 @@ void callback(char *topic, byte *payload, unsigned int length)
         }
         Serial.println(message);
         Serial.println(finalString);
-        if(finalString == idBell) {
-            handleBell(message);
+        if (finalString == idBell)
+        {
+            rBell = true;
+            // handleBell(message);
+            if (message == "1")
+            {
+                digitalWrite(BellPin, HIGH);
+                delay(200);
+                digitalWrite(SubBellPin, HIGH);
+                String rs = TOPIC_RESPONSE + "/" + idBell;
+                delay(200);
+                // client.publish(rs.c_str(), "1");
+               
+            }
+            else
+            {
+                digitalWrite(BellPin, LOW);
+                delay(200);
+                digitalWrite(SubBellPin, LOW);
+                String rs = TOPIC_RESPONSE + "/" + idBell;
+                delay(200);
+                // client.publish(rs.c_str(), "0");
+                
+            }
         }
-        else if(finalString == idWin) {
-            handleWindow(message);
+        else if (finalString == idWin)
+        {
+            rWin = true;
+            // handleWindow(message);
+            if (message == "1")
+            {
+                digitalWrite(LedPin, HIGH);
+                String rs = TOPIC_RESPONSE + "/" + idWin;
+                Serial.println(rs);
+                delay(200);
+                // client.publish(rs.c_str(), "1");
+                
+            }
+            else
+            {
+                digitalWrite(LedPin, LOW);
+                String rs = TOPIC_RESPONSE + "/" + idWin;
+                Serial.println(rs);
+                delay(200);
+                // client.publish(rs.c_str(), "0");
+                
+            }
         }
+    }
+    isWorking = false;
+    if(rBell == true && rWin ==true) {
+        client.disconnect();
+        rBell = false;
+        rWin = false;
     }
 }
 void setup_wifi()
@@ -180,7 +272,7 @@ void sendValueMQ2(String &message)
 void sendStatusTempature(String &message)
 {
     float temperature = dht.readTemperature();
-     Serial.print(temperature);
+    Serial.print(temperature);
     MyPacket packet;
     packet.id = idTemp;
     packet.name = "Nhiệt độ";
@@ -219,16 +311,19 @@ void handleBell(String value)
     if (value == "1")
     {
         digitalWrite(BellPin, HIGH);
+        delay(200);
         digitalWrite(SubBellPin, HIGH);
-        String rs = TOPIC_RESPONSE +"/"+ idBell;
-        client.publish(rs.c_str(),"1");
+        String rs = TOPIC_RESPONSE + "/" + idBell;
+        delay(200);
+        client.publish(rs.c_str(), "1");
     }
     else
     {
         digitalWrite(BellPin, LOW);
+        delay(200);
         digitalWrite(SubBellPin, LOW);
-        String rs = TOPIC_RESPONSE +"/"+ idBell;
-        client.publish(rs.c_str(),"0");
+        String rs = TOPIC_RESPONSE + "/" + idBell;
+        client.publish(rs.c_str(), "0");
     }
 }
 void handleWindow(String value)
@@ -236,20 +331,22 @@ void handleWindow(String value)
     if (value == "1")
     {
         digitalWrite(LedPin, HIGH);
-        String rs = TOPIC_RESPONSE + "/"+idWin;
+        String rs = TOPIC_RESPONSE + "/" + idWin;
         Serial.println(rs);
-        client.publish(rs.c_str(),"1");
+        delay(200);
+        client.publish(rs.c_str(), "1");
     }
     else
     {
         digitalWrite(LedPin, LOW);
-        String rs = TOPIC_RESPONSE + "/"+idWin;
-           Serial.println(rs);
-        client.publish(rs.c_str(),"0");
+        String rs = TOPIC_RESPONSE + "/" + idWin;
+        Serial.println(rs);
+        delay(200);
+        client.publish(rs.c_str(), "0");
     }
 }
 void PushMes(String &messs, MyPacket packet)
 {
     messs +=
-        "{Name:" + packet.name + ";" + "Id:" + packet.id + ";"  + "Value:" + packet.value + ";" + "Type:" + packet.type + ";" + "Port:" + packet.port + ";" + "Unit:" + packet.unit + "},";
+        "{Name:" + packet.name + ";" + "Id:" + packet.id + ";" + "Value:" + packet.value + ";" + "Type:" + packet.type + ";" + "Port:" + packet.port + ";" + "Unit:" + packet.unit + "},";
 }

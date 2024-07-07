@@ -100,7 +100,7 @@ namespace FireManagerServer.BackgroundServices
         private void SendAutoThresh(string topicWrite, string status)
         {
             var client = new MqttClient("broker.emqx.io");
-            client.Connect(Guid.NewGuid().ToString());
+            client.Connect("SystemClientId");
             client.Publish(topicWrite+"/Sub", Encoding.UTF8.GetBytes(status));
         }
     }
