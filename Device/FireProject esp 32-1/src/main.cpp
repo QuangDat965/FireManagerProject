@@ -190,7 +190,7 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 digitalWrite(BellPin, HIGH);
                 digitalWrite(SubBellPin, HIGH);
                 String rs = TOPIC_RESPONSE + "/" + idBell;
-                // client.publish(rs.c_str(), "1");
+                client.publish(rs.c_str(), "1");
                
             }
             else
@@ -198,7 +198,7 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 digitalWrite(BellPin, LOW);
                 digitalWrite(SubBellPin, LOW);
                 String rs = TOPIC_RESPONSE + "/" + idBell;
-                // client.publish(rs.c_str(), "0");
+                client.publish(rs.c_str(), "0");
                 
             }
         }
@@ -212,7 +212,7 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 String rs = TOPIC_RESPONSE + "/" + idWin;
                 Serial.println(rs);
                 delay(200);
-                // client.publish(rs.c_str(), "1");
+                client.publish(rs.c_str(), "1");
                 
             }
             else
@@ -221,14 +221,14 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 String rs = TOPIC_RESPONSE + "/" + idWin;
                 Serial.println(rs);
                 delay(200);
-                // client.publish(rs.c_str(), "0");
+                client.publish(rs.c_str(), "0");
                 
             }
         }
     }
     isWorking = false;
     if(rBell == true && rWin ==true) {
-        client.disconnect();
+        // client.disconnect();
         rBell = false;
         rWin = false;
     }
