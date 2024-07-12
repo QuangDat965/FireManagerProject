@@ -66,7 +66,6 @@ void sendStatusTempature(String &message);
 void sendStatusWindow(String &message);
 void handleBell(String value);
 void handleWindow(String value);
-void doWork(char *topic, byte *payload, unsigned int length);
 void reconnect();
 #pragma endregion
 
@@ -106,18 +105,6 @@ void loop()
     sendStatusWindow(message);
     const char *payload = message.c_str();
     client.publish(TOPIC_SYNC.c_str(), payload);
-
-    if (messageReceived)
-    {
-        // Check if not currently working
-        if (!isWorking)
-        {
-            // Process message or call doWork() here
-            doWork(lastTopic, lastPayload, lastPayloadLength);
-            // Reset flag after work is done
-            messageReceived = false;
-        }
-    }
     delay(5000);
 }
 void reconnect()
@@ -145,26 +132,6 @@ void reconnect()
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    Serial.println("Message received");
-    // Example: Print topic
-    Serial.print("Topic: ");
-    Serial.println(topic);
-    // Example: Print payload
-    Serial.print("Payload: ");
-    for (int i = 0; i < length; i++)
-    {
-        Serial.print((char)payload[i]);
-    }
-    Serial.println();
-    // Save topic and payload
-    strcpy(lastTopic, topic);
-    memcpy(lastPayload, payload, length);
-    lastPayloadLength = length;
-    // Set flag to indicate message received
-    messageReceived = true;
-}
-void doWork(char *topic, byte *payload, unsigned int length)
-{
     Serial.print("Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
@@ -190,7 +157,7 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 digitalWrite(BellPin, HIGH);
                 digitalWrite(SubBellPin, HIGH);
                 String rs = TOPIC_RESPONSE + "/" + idBell;
-                client.publish(rs.c_str(), "1");
+                // client.publish(rs.c_str(), "1");
                
             }
             else
@@ -198,7 +165,7 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 digitalWrite(BellPin, LOW);
                 digitalWrite(SubBellPin, LOW);
                 String rs = TOPIC_RESPONSE + "/" + idBell;
-                client.publish(rs.c_str(), "0");
+                // client.publish(rs.c_str(), "0");
                 
             }
         }
@@ -212,7 +179,7 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 String rs = TOPIC_RESPONSE + "/" + idWin;
                 Serial.println(rs);
                 delay(200);
-                client.publish(rs.c_str(), "1");
+                // client.publish(rs.c_str(), "1");
                 
             }
             else
@@ -221,14 +188,13 @@ void doWork(char *topic, byte *payload, unsigned int length)
                 String rs = TOPIC_RESPONSE + "/" + idWin;
                 Serial.println(rs);
                 delay(200);
-                client.publish(rs.c_str(), "0");
+                // client.publish(rs.c_str(), "0");
                 
             }
         }
     }
-    isWorking = false;
     if(rBell == true && rWin ==true) {
-        // client.disconnect();
+        client.disconnect();
         rBell = false;
         rWin = false;
     }

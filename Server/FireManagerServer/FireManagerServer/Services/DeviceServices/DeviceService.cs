@@ -4,6 +4,7 @@ using FireManagerServer.Database.Entity;
 using FireManagerServer.Model.HistoryModel;
 using FireManagerServer.Services.HistoryServices;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices;
 using System.Text;
 using uPLibrary.Networking.M2Mqtt;
 
@@ -35,86 +36,109 @@ namespace FireManagerServer.Services.DeviceServices
 
         public async Task<bool> OffDevice(string deviceId, string userid, bool? timeout = true)
         {
-            MqttClient client;
-            string? responseFromDevice = null;
-            client = new MqttClient(_configuration.GetValue<string>("BrokerHost"));
-            client.MqttMsgPublishReceived += (sender, e) =>
+            MqttClient client = new MqttClient(_configuration.GetValue<string>("BrokerHost"));
+            try
             {
-                responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
-            };
-            client.Connect("SystemClientId");
-            var device = await dbContext.Devices.Where(x => x.Id == deviceId).FirstOrDefaultAsync();
-            var htr = new HistoryCreateDto()
-            {
-                DeviceId = deviceId,
-                DeviceName = device.Topic,
-                IsSuccess = false,
-                DeviceType = device.Type,
-                UserId = userid,
-                Value = "0"
-            };
-            var systemId = _configuration.GetValue<string>("SystemId");
-            //var deviceId = device.Id;
-            client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
-            var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
-            client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
-            if (timeout == true)
-            {
-                for (int i = 0; i < 10; i++)
+               
+                string? responseFromDevice = null;
+                client.MqttMsgPublishReceived += (sender, e) =>
                 {
-                    if (!string.IsNullOrEmpty(responseFromDevice))
+                    responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
+                };
+                client.Connect("ONOFFClient");
+                var device = await dbContext.Devices.Where(x => x.Id == deviceId).FirstOrDefaultAsync();
+                var htr = new HistoryCreateDto()
+                {
+                    DeviceId = deviceId,
+                    DeviceName = device.Topic,
+                    IsSuccess = false,
+                    DeviceType = device.Type,
+                    UserId = userid,
+                    Value = "0"
+                };
+                var systemId = _configuration.GetValue<string>("SystemId");
+                //var deviceId = device.Id;
+                client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
+                var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
+                client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
+                if (timeout == true)
+                {
+                    for (int i = 0; i < 10; i++)
                     {
-                        htr.IsSuccess = true;
-                        await _historyService.Create(htr);
-                        return true;
+                        if (!string.IsNullOrEmpty(responseFromDevice))
+                        {
+                            htr.IsSuccess = true;
+                            //await _historyService.Create(htr);
+                            return true;
+                        }
+                        ++i;
+                        Thread.Sleep(1000);
                     }
-                    ++i;
-                    Thread.Sleep(1000);
+                }
+                return false;
+            }
+            catch { return false; }
+            finally
+            {
+                if(client!= null && client.IsConnected)
+                {
+                    client.Disconnect();
                 }
             }
-            return false;
         }
 
         public async Task<bool> OnDevice(string deviceId, string userid, bool? timeout = true)
         {
-            MqttClient client;
-            string? responseFromDevice = null;
-            client = new MqttClient(_configuration.GetValue<string>("BrokerHost"));
-            client.MqttMsgPublishReceived += (sender, e) =>
+            MqttClient client = new MqttClient(_configuration.GetValue<string>("BrokerHost")); ;
+            try
             {
-                responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
-            };
-            client.Connect("SystemClientId");
-            var device = await dbContext.Devices.Where(x => x.Id == deviceId).FirstOrDefaultAsync();
-            var htr = new HistoryCreateDto()
-            {
-                DeviceId = deviceId,
-                DeviceName = device.Topic,
-                IsSuccess = false,
-                DeviceType = device.Type,
-                UserId = userid,
-                Value = "1"
-            };
-            var systemId = _configuration.GetValue<string>("SystemId");
-            //var deviceId = device.Id;
-            client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
-            var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
-            client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
-            if (timeout==true)
-            {
-                for (int i = 0; i < 10; i++)
+                
+                string? responseFromDevice = null;
+  
+                client.MqttMsgPublishReceived += (sender, e) =>
                 {
-                    if (!string.IsNullOrEmpty(responseFromDevice))
+                    responseFromDevice = Encoding.UTF8.GetString(e.Message); // Lưu trữ câu trả lời từ Client B
+                };
+                client.Connect("ONOFFClient");
+                var device = await dbContext.Devices.Where(x => x.Id == deviceId).FirstOrDefaultAsync();
+                var htr = new HistoryCreateDto()
+                {
+                    DeviceId = deviceId,
+                    DeviceName = device.Topic,
+                    IsSuccess = false,
+                    DeviceType = device.Type,
+                    UserId = userid,
+                    Value = "1"
+                };
+                var systemId = _configuration.GetValue<string>("SystemId");
+                //var deviceId = device.Id;
+                client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
+                var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
+                client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
+                if (timeout == true)
+                {
+                    for (int i = 0; i < 10; i++)
                     {
-                        htr.IsSuccess = true;
-                        await _historyService.Create(htr);
-                        return true;
+                        if (!string.IsNullOrEmpty(responseFromDevice))
+                        {
+                            htr.IsSuccess = true;
+                            //await _historyService.Create(htr);
+                            return true;
+                        }
+                        ++i;
+                        Thread.Sleep(1000);
                     }
-                    ++i;
-                    Thread.Sleep(1000);
+                }
+                return false;
+            }
+            catch { return false; }
+            finally
+            {
+                if (client != null && client.IsConnected)
+                {
+                    client.Disconnect();
                 }
             }
-            return false;
         }
 
     }

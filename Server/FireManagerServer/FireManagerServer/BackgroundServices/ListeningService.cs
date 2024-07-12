@@ -34,7 +34,7 @@ namespace FireManagerServer.BackgroundServices
                 {
                     if (!client.IsConnected)
                     {
-                        client.Connect("SystemClientId2");
+                        client.Connect("ListeningClient");
                         client.Subscribe(topic, new byte[] { 0 });
                         Console.WriteLine("Connected Mqtt");
                     }

@@ -45,7 +45,11 @@ namespace FireManagerServer.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-           
+            _mqttClient.MqttMsgPublishReceived += async (sender, e) =>
+            {
+                _logger.WillLog($"retrieve topic e: {e.Topic}");
+                await ProcessEventAsync(sender, e);
+            };
             string[] topic = new string[] { Constance.TOPIC_ASYNC + "/#" };
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -54,12 +58,8 @@ namespace FireManagerServer.BackgroundServices
 
                     if (!_mqttClient.IsConnected)
                     {
-                        _mqttClient.MqttMsgPublishReceived += async (sender, e) =>
-                        {
-                            _logger.WillLog($"retrieve topic e: {e.Topic}");
-                            await ProcessEventAsync(sender, e);
-                        };
-                        _mqttClient.Connect("SystemClientId");
+                        
+                        _mqttClient.Connect("AutoClient");
                         _mqttClient.Subscribe(topic, new byte[] { 0 });
                         Console.WriteLine("Connected Mqtt");
                     }
