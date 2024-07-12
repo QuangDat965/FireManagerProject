@@ -12,6 +12,7 @@ import TextInput from '../components/TextInput';
 import ButtonC from '../components/Button';
 import CustomAlert from '../components/CustomAlert';
 import { useNavigate } from 'react-router-native';
+import { formatDate } from '../helpers/formatdate';
 
 
 
@@ -264,7 +265,7 @@ export default function ApartmentScreen() {
 
                                     <View style={{ flexDirection: 'row' }}>
                                         <Text style={{ fontWeight: '500' }}>Ngày tạo: </Text>
-                                        <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.dateCreate}</Text>
+                                        <Text style={{ fontWeight: '500', opacity: 0.7 }}>{formatDate(e.dateCreate)}</Text>
                                     </View>
                                 </View>
 

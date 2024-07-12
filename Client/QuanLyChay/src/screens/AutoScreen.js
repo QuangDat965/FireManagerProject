@@ -468,7 +468,7 @@ export default function AutoScreen() {
                                     />
 
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                {/* <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Text style={{ fontWeight: '500' }}>IsFireRule: </Text>
                                     <Icon2 onPress={() => {
                                         handleFireRule(e)
@@ -476,7 +476,7 @@ export default function AutoScreen() {
                                         size={30}
                                     />
 
-                                </View>
+                                </View> */}
 
                             </View>
 

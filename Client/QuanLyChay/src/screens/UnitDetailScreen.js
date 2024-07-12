@@ -8,6 +8,7 @@ import { getData, getDataNo, postData, postDataNobody } from '../api/Api';
 import MqttService from '../helpers/mqttService';
 import { useNavigate, useLocation } from 'react-router-native';
 import Loading from '../components/Loading';
+import { formatDate } from '../helpers/formatdate';
 
 
 
@@ -154,7 +155,7 @@ export default function UnitDetailScreen() {
 
                     <View style={{ flexDirection: 'row' }}>
                         <Text style={{ fontWeight: '500' }}>Ngày tạo: </Text>
-                        <Text style={{ fontWeight: '500', opacity: 0.7 }}>{unit.dateCreate}</Text>
+                        <Text style={{ fontWeight: '500', opacity: 0.7 }}>{formatDate(unit.dateCreate)}</Text>
                     </View>
                 </View>
 

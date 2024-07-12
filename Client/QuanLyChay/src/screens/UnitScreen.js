@@ -16,6 +16,7 @@ import { Picker } from '@react-native-picker/picker';
 import CustomAlert from '../components/CustomAlert';
 import { getData, postData, putData } from '../api/Api';
 import { useNavigate, useLocation } from 'react-router-native';
+import { formatDate } from '../helpers/formatdate';
 
 
 export default function UnitScreen() {
@@ -382,7 +383,7 @@ export default function UnitScreen() {
 
                                     <View style={{ flexDirection: 'row' }}>
                                         <Text style={{ fontWeight: '500' }}>Ngày tạo: </Text>
-                                        <Text style={{ fontWeight: '500', opacity: 0.7 }}>{e.dateCreate}</Text>
+                                        <Text style={{ fontWeight: '500', opacity: 0.7 }}>{formatDate(e.dateCreate)}</Text>
                                     </View>
                                     <View style={{ flexDirection: 'row' }}>
                                         <Text onPress={() => navigate('/UnitDetailScreen', { state:{unit:e} })} style={{ fontWeight: '500', color: 'blue', fontStyle: 'italic', textDecorationLine: 'underline' }}>Xem thông số</Text>

@@ -60,7 +60,7 @@ namespace FireManagerServer.Services.DeviceServices
             client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
             if (timeout == true)
             {
-                for (int i = 0; i < 15; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     if (!string.IsNullOrEmpty(responseFromDevice))
                     {
@@ -102,7 +102,7 @@ namespace FireManagerServer.Services.DeviceServices
             client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
             if (timeout==true)
             {
-                for (int i = 0; i < 15; i++)
+                for (int i = 0; i < 3; i++)
                 {
                     if (!string.IsNullOrEmpty(responseFromDevice))
                     {

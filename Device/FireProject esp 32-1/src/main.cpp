@@ -17,8 +17,8 @@
 #define Synsc "sync"
 #define Wait "wait"
 #define Response "response"
-#define EspId "esp32id-2"
-#define EspName "ESP32-2"
+#define EspId "esp32id-1"
+#define EspName "ESP32-1"
 
 struct MyPacket
 {
@@ -188,20 +188,16 @@ void doWork(char *topic, byte *payload, unsigned int length)
             if (message == "1")
             {
                 digitalWrite(BellPin, HIGH);
-                delay(200);
                 digitalWrite(SubBellPin, HIGH);
                 String rs = TOPIC_RESPONSE + "/" + idBell;
-                delay(200);
                 // client.publish(rs.c_str(), "1");
                
             }
             else
             {
                 digitalWrite(BellPin, LOW);
-                delay(200);
                 digitalWrite(SubBellPin, LOW);
                 String rs = TOPIC_RESPONSE + "/" + idBell;
-                delay(200);
                 // client.publish(rs.c_str(), "0");
                 
             }
