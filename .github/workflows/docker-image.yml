@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build -t hubertquang/hubert_repo:fire_api Server/FireManagerServer/FireManagerServer .
+      run: docker build -t hubertquang/hubert_repo:fire_api Server/FireManagerServer/FireManagerServer.
     - name: Log into Docker Hub
       run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Push Docker image to Docker Hub
