@@ -20,10 +20,14 @@ jobs:
       run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
     - name: Push Docker image to Docker Hub
       run: docker push hubertquang/hubert_repo:fire_api
+    - name: Remove container
+      run: docker -H tcp://103.176.25.7:84 rm -f fire_api
+    - name: Remove images
+      run: docker -H tcp://103.176.25.7:84 rmi -f hubertquang/hubert_repo:fire_api
     - name: Pull Docker images
       run: docker -H tcp://103.176.25.7:84 pull hubertquang/hubert_repo:fire_api
-    # - name: Stop container
-    #   run: docker -H tcp://103.176.25.7:84 stop wetherapi_con
+    - name: Run Images
+      run: docker -H tcp://103.176.25.7:84 run -p 80:80 -d --name fire_api hubertquang/hubert_repo:fire_api
     # - name: Remove container
     #   run: docker -H tcp://103.176.25.7:84 rm wetherapi_con
     # - name: run container
