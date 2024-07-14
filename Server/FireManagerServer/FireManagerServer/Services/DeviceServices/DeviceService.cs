@@ -64,9 +64,13 @@ namespace FireManagerServer.Services.DeviceServices
                 client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
-                if(_cache.TryGetValue(deviceId, out var valueCache))
+                if(_cache.ContainsKey(deviceId))
                 {
                     _cache[deviceId] = "0";
+                }
+                else
+                {
+                    _cache.Add(deviceId, "0");
                 }
                 if (timeout == true)
                 {
@@ -124,9 +128,13 @@ namespace FireManagerServer.Services.DeviceServices
                 client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
-                if (_cache.TryGetValue(deviceId, out var valueCache))
+                if (_cache.ContainsKey(deviceId))
                 {
                     _cache[deviceId] = "1";
+                }
+                else
+                {
+                    _cache.Add(deviceId, "1");
                 }
                 if (timeout == true)
                 {
