@@ -65,9 +65,9 @@ namespace FireManagerServer.Services.DeviceServices
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
                 if (_cache.ContainsKey(deviceId))
                 {
-                    if (_cache.TryGetValue(deviceId, out responseFromDevice))
+                    if (_cache.TryGetValue(deviceId, out var inCache))
                     {
-                        if (responseFromDevice == "0")
+                        if (inCache == "0")
                         {
                             return true;
                         }
@@ -82,7 +82,7 @@ namespace FireManagerServer.Services.DeviceServices
                     _cache.Add(deviceId, "0");
                 }
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
-                
+                Thread.Sleep(1000);
                 if (timeout == true)
                 {
                     for (int i = 0; i < 10; i++)
@@ -140,9 +140,9 @@ namespace FireManagerServer.Services.DeviceServices
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
                 if (_cache.ContainsKey(deviceId))
                 {
-                    if (_cache.TryGetValue(deviceId, out responseFromDevice))
+                    if (_cache.TryGetValue(deviceId, out var  inCache))
                     {
-                        if (responseFromDevice == "1")
+                        if (inCache == "1")
                         {
                             return true;
                         }
@@ -157,7 +157,7 @@ namespace FireManagerServer.Services.DeviceServices
                     _cache.Add(deviceId, "1");
                 }
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
-                
+                Thread.Sleep(1000);
                 if (timeout == true)
                 {
                     for (int i = 0; i < 10; i++)
