@@ -88,7 +88,7 @@ namespace FireManagerServer.BackgroundServices
                     Topic = e.Topic,
                     Payload = Encoding.UTF8.GetString(e.Message)
                 };
-
+                SetPrevData(message.Payload.ToSensorModel());
                 var arrgs = message.Topic.Split("/");
                 var moduleId = arrgs[2];
                 var moduleName = arrgs[3];
@@ -131,7 +131,7 @@ namespace FireManagerServer.BackgroundServices
                 var module = await _moduleService.GetbyId(rule.ModuleId);
                 var apartmentId = module.ApartmentId;
                 var deviceSensors = message.Payload.ToSensorModel();
-                SetPrevData(deviceSensors);
+
                 var sensorDbs = rule.TopicThreshholds.Where(x => x.DeviceType == Common.DeviceType.R).ToList();
                 Console.WriteLine("sensor:" + sensorDbs.Count);
                 var sensorDeviceCheckmapping = deviceSensors.ToDictionary(x => x.Id, x => x.Value);
@@ -274,26 +274,16 @@ namespace FireManagerServer.BackgroundServices
                 {
                     if (deviceImplement.ThreshHold == 0)
                     {
-                        if (_cache.TryGetValue(deviceImplement.DeviceId, out var valueInCache))
-                        {
-                            if(deviceImplement.ThreshHold != int.Parse(valueInCache))
-                            {
-                                await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
-                                _cache[deviceImplement.DeviceId] = deviceImplement.ThreshHold.ToString();
-                            }
-                        }
+                       
+                           
+                      await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
+                               
+                            
+                        
                     }
                     else if (deviceImplement.ThreshHold == 1)
                     {
-                        if (_cache.TryGetValue(deviceImplement.DeviceId, out var valueInCache))
-                        {
-                            if (deviceImplement.ThreshHold != int.Parse(valueInCache))
-                            {
-                                await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
-                                _cache[deviceImplement.DeviceId] = deviceImplement.ThreshHold.ToString();
-                            }
-                        }
-                        
+                        await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
 
                     }
                 }
@@ -301,27 +291,12 @@ namespace FireManagerServer.BackgroundServices
                 {
                     if (deviceImplement.InitialValue == "0")
                     {
-                        if (_cache.TryGetValue(deviceImplement.DeviceId, out var valueInCache))
-                        {
-                            if (deviceImplement.InitialValue != valueInCache)
-                            {
-                                await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
-                                _cache[deviceImplement.DeviceId] = deviceImplement.InitialValue;
-                            }
-                        }
-                        
+                        await _deviceService.OffDevice(deviceImplement.DeviceId, "System", false);
+
                     }
                     else
                     {
-                        
-                        if (_cache.TryGetValue(deviceImplement.DeviceId, out var valueInCache))
-                        {
-                            if (deviceImplement.InitialValue != valueInCache)
-                            {
-                                await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
-                                _cache[deviceImplement.DeviceId] = deviceImplement.InitialValue;
-                            }
-                        }
+                        await _deviceService.OnDevice(deviceImplement.DeviceId, "System", false);
                     }
                 }
                 _logger.WillLog($"Fnish On/Off: {deviceImplement.DeviceId}");

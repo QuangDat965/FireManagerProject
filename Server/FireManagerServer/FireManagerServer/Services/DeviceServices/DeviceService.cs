@@ -63,15 +63,26 @@ namespace FireManagerServer.Services.DeviceServices
                 //var deviceId = device.Id;
                 client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
-                client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
-                if(_cache.ContainsKey(deviceId))
+                if (_cache.ContainsKey(deviceId))
                 {
-                    _cache[deviceId] = "0";
+                    if (_cache.TryGetValue(deviceId, out responseFromDevice))
+                    {
+                        if (responseFromDevice == "0")
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            _cache[deviceId] = "0";
+                        }
+                    }
                 }
                 else
                 {
                     _cache.Add(deviceId, "0");
                 }
+                client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
+                
                 if (timeout == true)
                 {
                     for (int i = 0; i < 10; i++)
@@ -127,15 +138,26 @@ namespace FireManagerServer.Services.DeviceServices
                 //var deviceId = device.Id;
                 client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
-                client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
                 if (_cache.ContainsKey(deviceId))
                 {
-                    _cache[deviceId] = "1";
+                    if (_cache.TryGetValue(deviceId, out responseFromDevice))
+                    {
+                        if (responseFromDevice == "1")
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            _cache[deviceId] = "1";
+                        }
+                    }
                 }
                 else
                 {
                     _cache.Add(deviceId, "1");
                 }
+                client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
+                
                 if (timeout == true)
                 {
                     for (int i = 0; i < 10; i++)
