@@ -16,13 +16,16 @@ namespace FireManagerServer.Services.DeviceServices
         private readonly IConfiguration _configuration;
         private readonly IHistoryService _historyService;
         private readonly JwtService _jwtService;
+        private readonly Dictionary<string,string> _cache;
 
         public DeviceService(
-            FireDbContext dbContext, IConfiguration configuration, IHistoryService historyService)
+            FireDbContext dbContext, IConfiguration configuration, IHistoryService historyService,
+            Dictionary<string, string> cache)
         {
             this.dbContext = dbContext;
             _configuration = configuration;
             _historyService = historyService;
+            _cache = cache;
         }
         public async Task<List<DeviceEntity>> GetAll()
         {
@@ -61,6 +64,10 @@ namespace FireManagerServer.Services.DeviceServices
                 client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("0"));
+                if(_cache.TryGetValue(deviceId, out var valueCache))
+                {
+                    _cache[deviceId] = "0";
+                }
                 if (timeout == true)
                 {
                     for (int i = 0; i < 10; i++)
@@ -69,6 +76,7 @@ namespace FireManagerServer.Services.DeviceServices
                         {
                             htr.IsSuccess = true;
                             //await _historyService.Create(htr);
+                            
                             return true;
                         }
                         ++i;
@@ -83,6 +91,7 @@ namespace FireManagerServer.Services.DeviceServices
                 if(client!= null && client.IsConnected)
                 {
                     client.Disconnect();
+            
                 }
             }
         }
@@ -115,6 +124,10 @@ namespace FireManagerServer.Services.DeviceServices
                 client.Subscribe(new string[] { $"{Constance.TOPIC_RESPONSE}/{device.ModuleId}/{deviceId}" }, new byte[] { 0 });
                 var topic = $"{Constance.TOPIC_WAIT}/{device.ModuleId}/{deviceId}";
                 client.Publish(topic, System.Text.Encoding.UTF8.GetBytes("1"));
+                if (_cache.TryGetValue(deviceId, out var valueCache))
+                {
+                    _cache[deviceId] = "1";
+                }
                 if (timeout == true)
                 {
                     for (int i = 0; i < 10; i++)

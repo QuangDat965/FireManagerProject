@@ -34,14 +34,15 @@ namespace FireManagerServer.BackgroundServices
         private readonly MqttClient _mqttClient;
         private readonly ILoggerService<AutoService> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
-        private static Dictionary<string, string> _cache = new();
+        private Dictionary<string, string> _cache;
 
-        public AutoService(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILoggerService<AutoService> logger)
+        public AutoService(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILoggerService<AutoService> logger, Dictionary<string, string> cache)
         {
             _configuration = configuration;
             _scopeFactory = scopeFactory;
             _mqttClient = new MqttClient(configuration.GetValue<string>("BrokerHost"));
             _logger = logger;
+            _cache = cache;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

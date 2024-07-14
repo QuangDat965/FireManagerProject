@@ -31,6 +31,7 @@ namespace FireManagerServer
             builder.Services.AddScoped<IDeviceService, DeviceService>();
             builder.Services.AddScoped<IHistoryService, HistoryService>();
             builder.Services.AddSingleton(typeof(ILoggerService<>), typeof(LoggerService<>));
+            builder.Services.AddSingleton<Dictionary<string, string>>();
 
             builder.Services.AddCors(options =>
             {

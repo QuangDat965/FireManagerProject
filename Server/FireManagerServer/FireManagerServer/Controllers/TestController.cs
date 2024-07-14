@@ -30,6 +30,7 @@ namespace FireManagerServer.Controllers
         private readonly IModuleService _moduleService;
         private readonly IApartmentService _apartmentService;
         private readonly IBuildingService _buildingService;
+        private readonly Dictionary<string,string> _cache;
 
         public TestController(IJwtService jwtService, IAuthenService authenticationService,
             IRuleService ruleService,
@@ -37,6 +38,7 @@ namespace FireManagerServer.Controllers
             IModuleService moduleService,
             IApartmentService apartmentService,
             IBuildingService buildingService,
+            Dictionary<string, string> dic,
             IConfiguration configuration)
         {
             this.jwtService = jwtService;
@@ -47,6 +49,7 @@ namespace FireManagerServer.Controllers
             _moduleService = moduleService;
             _apartmentService = apartmentService;
             _buildingService = buildingService;
+            _cache = dic;
         }
         [HttpGet("generateToken")]
         public IActionResult Test()
@@ -72,6 +75,12 @@ namespace FireManagerServer.Controllers
         public async Task<ResponseModel<AuthenResponse>> Register([FromBody] Register request)
         {
             return await authenticationService.Register(request);
+        }
+        [HttpGet("getdic")]
+        public async Task<IActionResult> GetDic()
+        {
+            var value = _cache.ToList();
+            return Ok(value);
         }
         [HttpPost("mockrule")]
         public async Task<IActionResult> MockRule(int numberModule, string name)
